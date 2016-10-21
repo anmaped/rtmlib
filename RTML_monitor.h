@@ -12,12 +12,12 @@
 #include <errno.h>
 
 #include "time_compat.h"
-#include "RTEML_buffer.h"
+#include "RTML_buffer.h"
 
 #include "task_compat.h"
 
 /**
- * Represents a periodic RTEML_monitor.
+ * Represents a periodic RTML_monitor.
  *
  * This class represents a periodic monitor, capable of monitoring several EventBuffers.  The monitor creates a periodic
  * pthread that executes the code on the pure virtual function run.
@@ -31,7 +31,7 @@
  * @author Humberto Carvalho (1129498@isep.ipp.pt)
  * @date
  */
-class RTEML_monitor {
+class RTML_monitor {
 private:
 
     /** The Monitors pthread. */
@@ -42,7 +42,7 @@ private:
 
     struct Monitor_state
     {
-        /** The schedule policy for the current RTEML_monitor as defined in pthread. */
+        /** The schedule policy for the current RTML_monitor as defined in pthread. */
         const int sched_policy;
 
         /** The priority for the schedule policy, please see the pthread documentation for more information. */
@@ -98,16 +98,16 @@ public:
      *
      * @param period the monitors period.
      */
-    RTEML_monitor(const useconds_t period);
+    RTML_monitor(const useconds_t period);
 
     /**
      * Instantiates a new monitor with a certain period, a schedule policy and one priority.
      *
-     * @param period the RTEML_monitor period.
+     * @param period the RTML_monitor period.
      * @param policy the posix schedule policy for this monitor.
-     * @param priority the priority for this RTEML_monitor.
+     * @param priority the priority for this RTML_monitor.
      */
-    RTEML_monitor(const useconds_t period, unsigned int policy, unsigned int priority);
+    RTML_monitor(const useconds_t period, unsigned int policy, unsigned int priority);
 
     /**
      * Creates a thread for this monitor which will run function f.
@@ -117,7 +117,7 @@ public:
     int enable();
 
     /**
-     * Checks whether this RTEML_monitor is running.
+     * Checks whether this RTML_monitor is running.
      *
      * @returns true if the monitor is running.
      */

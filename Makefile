@@ -7,17 +7,17 @@ LIBOBJ=$(LIBSRC:.cpp=.o)
 CFLAGS = -Wall -g -O0 -std=c++0x -D__x86__ --verbose
 LOADLIBS = -L./
 
-RTEMLLIB = librteml.a
-TARGETS = $(RTEMLLIB)
+RTMLLIB = librtml.a
+TARGETS = $(RTMLLIB)
 
 all: $(TARGETS)
 
-rteml.o: RTEML_monitor.cpp
-	$(CC) $(CFLAGS) $(LOADLIBS) -c RTEML_monitor.cpp -o rteml.o
+rteml.o: RTML_monitor.cpp
+	$(CC) $(CFLAGS) $(LOADLIBS) -c RTML_monitor.cpp -o rtml.o
 
-$(TARGETS): rteml.o
-	ar rcs $(RTEMLLIB) rteml.o
-	ranlib $(RTEMLLIB)
+$(TARGETS): rtml.o
+	ar rcs $(RTMLLIB) rtml.o
+	ranlib $(RTMLLIB)
 
 clean:
-	rm rteml.o $(TARGETS) $(RTEMLLIB) $(LIBOBJ)
+	rm rtml.o $(TARGETS) $(RTMLLIB) $(LIBOBJ)

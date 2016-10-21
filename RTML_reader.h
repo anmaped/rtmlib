@@ -20,7 +20,7 @@
         dequeue_##size (int idx = -1)
 
 #define dequeue_n(size) \
-    std::tuple<state_rd_t, size_t, std::array<Event<T>, size> > RTEML_reader<T>::dequeue_##size (int idx) \
+    std::tuple<state_rd_t, size_t, std::array<Event<T>, size> > RTML_reader<T>::dequeue_##size (int idx) \
     { \
         std::array<Event<T>, size> local_buffer; 
 
@@ -29,15 +29,15 @@ enum state_rd_t {AVAILABLE, AVAILABLE_PARTIALLY, UNAVAILABLE, OVERWRITTEN};
 
 
 /**
- * Reads events from an RTEML_buffer.
+ * Reads events from an RTML_buffer.
  *
  * @author André Pedro (anmap@isep.ipp.pt)
  * @date
  */
 template<typename T>
-class RTEML_reader {
+class RTML_reader {
 private:
-    /**  Constant pointer to a constant circular Buffer this RTEML_reader performs atomic read operations from.
+    /**  Constant pointer to a constant circular Buffer this RTML_reader performs atomic read operations from.
      * @see CircularBuffer
      */
     const CircularBuffer<T> *buffer;
@@ -53,13 +53,13 @@ private:
 public:
 
     /**
-     * Instantiates a new RTEML_reader.
+     * Instantiates a new RTML_reader.
      *
      * Instantiates a new event reader that reads from buffer.
      *
      * @param buffer a constant pointer that points to a constant buffer.
      */
-    RTEML_reader(const CircularBuffer<T> * buffer);
+    RTML_reader(const CircularBuffer<T> * buffer);
 
     /**
      * Dequeues the next event from the buffer.
@@ -81,16 +81,16 @@ public:
     dequeue_n_declaration(20);
 
     /**
-     * Synchronize the RTEML_reader index according to a timestamp
+     * Synchronize the RTML_reader index according to a timestamp
      *
      * @param time defines the timestamp to syncronize.
      *
-     * @return true if the RTEML_reader was synchronized, false otherwise.
+     * @return true if the RTML_reader was synchronized, false otherwise.
      */
     bool synchronize();
 
     /**
-     * Compares the current RTEML_reader absolute timestamp with the
+     * Compares the current RTML_reader absolute timestamp with the
      * current absolute timestamp of the buffer.
      *
      * @return true if matched, false otherwise.
@@ -126,7 +126,7 @@ public:
 };
 
 template<typename T>
-RTEML_reader<T>::RTEML_reader(const CircularBuffer<T> * bbuffer) :
+RTML_reader<T>::RTML_reader(const CircularBuffer<T> * bbuffer) :
     buffer(bbuffer),
     n_elems_reader(0),
     lastread_ts(0)
@@ -135,7 +135,7 @@ RTEML_reader<T>::RTEML_reader(const CircularBuffer<T> * bbuffer) :
 }
 
 template<typename T>
-std::pair<state_rd_t,Event<T> > RTEML_reader<T>::dequeue(int idx) {
+std::pair<state_rd_t,Event<T> > RTML_reader<T>::dequeue(int idx) {
 
     Event<T> tempEvent;
     size_t n_elems_writer;
@@ -233,7 +233,7 @@ dequeue_n(20)
 }
 
 template<typename T>
-bool RTEML_reader<T>::synchronize()
+bool RTML_reader<T>::synchronize()
 {
     timeabs g_ts;
     size_t g_index;
@@ -265,7 +265,7 @@ bool RTEML_reader<T>::synchronize()
 }
 
 template<typename T>
-bool RTEML_reader<T>::isConsistent() const
+bool RTML_reader<T>::isConsistent() const
 {
     timeabs g_ts;
     size_t g_index;

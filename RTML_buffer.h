@@ -5,26 +5,26 @@
 #include <time.h>
 
 #include "CircularBuffer.h"
-#include "RTEML_writer.h"
-#include "RTEML_reader.h"
+#include "RTML_writer.h"
+#include "RTML_reader.h"
 
 /**
- * RTEML_buffer allows instrumented applications and monitors to share the
+ * RTML_buffer allows instrumented applications and monitors to share the
  * the same buffer by splinting it into read and write operations.
  *
- * Monitor uses RTEML_reader, and RTEML_writer is reserved for software modules
+ * Monitor uses RTML_reader, and RTML_writer is reserved for software modules
  * under observation.
  *
  * @see Event
- * @see RTEML_reader
- * @see RTEML_monitor
+ * @see RTML_reader
+ * @see RTML_monitor
  *
  * @author André Pedro (anmap@isep.ipp.pt)
  * @author Humberto Carvalho (1129498@isep.ipp.pt)
  * @date
  */
 template<typename T, size_t N>
-class RTEML_buffer {
+class RTML_buffer {
 private:
     /**
      * The Event array where events are kept. Size is defined via template
@@ -47,9 +47,9 @@ private:
 
 public:
     /**
-     * Instantiates a new RTEML_buffer.
+     * Instantiates a new RTML_buffer.
      */
-    RTEML_buffer();
+    RTML_buffer();
 
     /**
      * Gets the static length of the buffer.
@@ -67,7 +67,7 @@ public:
 };
 
 template<typename T, size_t N>
-RTEML_buffer<T, N>::RTEML_buffer() :
+RTML_buffer<T, N>::RTML_buffer() :
     buffer(array, N),
     writer(false)
 {
@@ -75,17 +75,17 @@ RTEML_buffer<T, N>::RTEML_buffer() :
 }
 
 template<typename T, size_t N>
-size_t RTEML_buffer<T, N>::getLength() const {
+size_t RTML_buffer<T, N>::getLength() const {
     return N;
 }
 
 template<typename T, size_t N>
-CircularBuffer<T> * RTEML_buffer<T, N>::getBuffer() const {
+CircularBuffer<T> * RTML_buffer<T, N>::getBuffer() const {
     return (CircularBuffer<T> *)&buffer;
 }
 
 template<typename T, size_t N>
-void RTEML_buffer<T, N>::debug() const
+void RTML_buffer<T, N>::debug() const
 {
     DEBUGV3(" ");
     for (unsigned int idx=0; idx < N; idx++)

@@ -88,7 +88,7 @@
 		bool fail = false; \
         uint64_t OLD_FRAME_ADDRESS = (uint64_t) std::atomic_load(&dest); \
         do { \
-        	if(fail) { pthread_yield(); }
+        	if(fail) { sched_yield(); }
 
 
 	#define ATOMIC_end_VALUE64(new_value, dest) \

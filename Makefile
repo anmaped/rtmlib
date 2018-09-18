@@ -12,7 +12,7 @@ TARGETS = $(RTMLLIB)
 
 all: $(TARGETS)
 
-rteml.o: RTML_monitor.cpp
+rtml.o: RTML_monitor.cpp
 	$(CC) $(CFLAGS) $(LOADLIBS) -c RTML_monitor.cpp -o rtml.o
 
 $(TARGETS): rtml.o

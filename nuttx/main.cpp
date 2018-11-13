@@ -10,13 +10,13 @@
 #include <poll.h>
 #include <drivers/drv_hrt.h>
 
-// sample monitor (MANUAL SETTINGS)
-#include "monitor_set1.h"
+#include "RTML_writer.h"
 #include "task_compat.h"
-#include "unit_test_cases.h"
 
+// include monitor headers
+#include "Mon0.h"
 
-extern "C" __EXPORT int rtemlib_main(int argc, char * const argv[]);
+extern "C" __EXPORT int rtmlib_main(int argc, char * const argv[]);
 
 static int daemon_task;
 
@@ -77,7 +77,7 @@ static int monitor_main_loop(int argc, char **argv)
 
 		};
 
-		static RTEML_writer<int> __writer = RTEML_writer<int>(__buffer_monitor_set1.getBuffer());
+		static RTML_writer<int> __writer = RTML_writer<int>(__buffer_mon1.getBuffer());
 
 		enqueue_test(1);
 
@@ -86,13 +86,13 @@ static int monitor_main_loop(int argc, char **argv)
 			__writer.enqueue(i);
 		STOP_MEASURE();
 
-		__buffer_monitor_set1.debug();
+		__buffer_mon1.debug();
 		return NULL;
 	};
 
 	auto consumer1 = [](void *) -> void*
 	{
-		static RTEML_reader<int> __reader = RTEML_reader<int>(__buffer_monitor_set1.getBuffer());
+		static RTML_reader<int> __reader = RTML_reader<int>(__buffer_mon1.getBuffer());
 		Event<int> tmpEvent;
 
 		std::pair<state_rd_t,Event<int> > rd_tuple = __reader.dequeue();
@@ -150,11 +150,11 @@ static int monitor_main_loop(int argc, char **argv)
 	return OK;
 }
 
-int rtemlib_main(int argc, char * const argv[])
+int rtmlib_main(int argc, char * const argv[])
 {
 	::printf("Mon starting...\n");
 
-	daemon_task = px4_task_spawn_cmd("rtemlib_main",
+	daemon_task = px4_task_spawn_cmd("rtmlib_main",
                                      SCHED_FIFO,
                                      241,
                                      2048,

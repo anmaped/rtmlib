@@ -1,13 +1,29 @@
 #
-# rtemlib module for NuttX OS
+# rtmlib test module for NuttX RTOS
+#
+# For gcc 4.7.2 you have to use the libatomic explicitly; It's included by default since 4.9.x version.
 #
 
 # editable settings...
-MONITOR_SOURCE_FILES = ../synth_tool/monitor_set1/monitor_set1.cpp
-MONITOR_FOLDER = $(SKETCHBOOK)/modules/rtemlib/synth_tool/monitor_set1
-MONITOR_TEST_CASES_FOLDER = $(SKETCHBOOK)/modules/rtemlib/synth_tool/monitor_set1/tests
+MONITOR_SOURCE_FILES = mon1.cpp
+MONITOR_FOLDER = $(SKETCHBOOK)/modules/rtmlib/nuttx/mon1
+MONITOR_TEST_CASES_FOLDER = $(MONITOR_FOLDER)/tests
 
-MODULE_COMMAND = rtemlib
-SRCS = libatomic.c main.cpp ../RTEML_monitor.cpp $(MONITOR_SOURCE_FILES)
+# do not edit these part
+TO_COMPILE=$(addprefix $(MONITOR_FOLDER)/, $(MONITOR_SOURCE_FILES))
+
+MODULE_COMMAND = rtmlib_app
+SRCS = main.cpp ../RTML_monitor.cpp $(TO_COMPILE)
 MODULE_STACKSIZE = 4096
-EXTRACXXFLAGS = -Wframe-larger-than=1200 -DCONFIG_WCHAR_BUILTIN -I$(SKETCHBOOK)/modules/rtemlib -I$(SKETCHBOOK)/modules/rtemlib/arch/arm/include -I$(MONITOR_FOLDER) -I$(MONITOR_TEST_CASES_FOLDER) -DARM_CM4_FP -D__NUTTX__ -std=c++0x --verbose -w
+EXTRACXXFLAGS = \
+  -Wframe-larger-than=1200 \
+  -DCONFIG_WCHAR_BUILTIN \
+  -I$(SKETCHBOOK)/modules/rtmlib \
+  -I$(SKETCHBOOK)/modules/rtmlib/arch/arm/include \
+  -I$(MONITOR_FOLDER) \
+  -I$(MONITOR_TEST_CASES_FOLDER) \
+  -DARM_CM4_FP \
+  -D__NUTTX__ \
+  -std=c++0x \
+  --verbose \
+  -w

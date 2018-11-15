@@ -1,8 +1,9 @@
 
 
 #define DEBUG 1
+#define x86 ( defined (__x86__) || defined (__x86_64__) )
 
-#if defined(DEBUG) && DEBUG > 0 && defined(__x86__)
+#if defined(DEBUG) && DEBUG > 0 && x86
 
 
 
@@ -13,7 +14,7 @@
     __FILE__, __LINE__, __func__, ##args)
 
 
-#if defined(DEBUG) && DEBUG > 2 && defined(__x86__)
+#if defined(DEBUG) && DEBUG > 2 && x86
 
     #define DEBUGV3(fmt, args...) fprintf(stdout, "DEBUG: %s:%d:%s(): " fmt, \
         __FILE__, __LINE__, __func__, ##args)

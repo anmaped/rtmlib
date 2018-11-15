@@ -76,7 +76,7 @@ private:
     struct timming_page {
 
         uint64_t current_time;
-        uint32_t counter;
+        NATIVE_POINTER_TYPE counter;
 
         //timming_page() {}
         timming_page(uint64_t t) :  current_time(t) {}
@@ -225,7 +225,7 @@ CircularBuffer<T>::CircularBuffer(node* const &array, const size_t length) :
 {
     FRAME_ADDRESS_subtype x;
 
-    setCounterCurrentPage(x, (uint32_t)&local_tm_page);
+    setCounterCurrentPage(x, (NATIVE_POINTER_TYPE)&local_tm_page);
     setCounterValue(x, 0);
 
     getFrameReference().store(x);

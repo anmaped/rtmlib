@@ -64,9 +64,9 @@
 	#define ATOMIC_end_VALUE64_NOEXCHANGE(dest) \
 	} while( !( std::atomic_load(&dest) == OLD_FRAME_ADDRESS ) );
 
+	#define NATIVE_POINTER_TYPE uint32_t
 
-#elif defined __x86__
-
+#elif defined (__x86__) || defined (__x86_64__)
 
 	#include <atomic>
 
@@ -100,6 +100,12 @@
 
 	#define ATOMIC_end_VALUE64_NOEXCHANGE(dest) \
 	} while( !( std::atomic_load(&dest) == OLD_FRAME_ADDRESS ) );
+
+    #if defined (__x86_64__)
+	  #define NATIVE_POINTER_TYPE uint64_t
+	#else
+	  #define NATIVE_POINTER_TYPE uint32_t
+	#endif
 
 #else
 

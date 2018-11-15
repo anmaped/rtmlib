@@ -9,7 +9,7 @@
 
 #ifdef __NUTTX__
 	#define STACK_SIZE 6000
-#elif defined __x86__
+#elif defined (__x86__) || defined (__x86_64__)
 	#define STACK_SIZE 1000000
 #endif
 

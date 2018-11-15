@@ -36,7 +36,7 @@ typedef uint32_t timespan;
 // assuming 168mhz 1000000000/(168000000/167999)
 // (1000000000/(clock/SysTick->LOAD))/SysTick->LOAD currently ~= 5.5(5)ns
 
-#elif defined __x86__
+#elif defined (__x86__) || defined (__x86_64__)
 
 #include <time.h>
 #include <pthread.h>

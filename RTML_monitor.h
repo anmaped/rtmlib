@@ -110,11 +110,16 @@ public:
     RTML_monitor(const useconds_t period, unsigned int policy, unsigned int priority);
 
     /**
-     * Creates a thread for this monitor which will run function f.
+     * Enables the monitor
+     */
+    int enable();
+
+    /**
+     * Disables the monitor
      *
      * @param f the function to start the thread with.
      */
-    int enable();
+    int disable();
 
     /**
      * Checks whether this RTML_monitor is running.

@@ -107,6 +107,12 @@ int RTML_monitor::enable()
     return P_OK;
 }
 
+int RTML_monitor::disable()
+{
+    m_state.status = ABORT;
+    return P_OK;
+}
+
 bool RTML_monitor::isRunning() const
 {
     return m_state.status == RUNNING;

@@ -1,7 +1,12 @@
 
 
 #define DEBUG 1
-#define x86 ( defined (__x86__) || defined (__x86_64__) )
+
+#if defined (__x86__) || defined (__x86_64__)
+#define x86 1
+#else
+#define x86 0
+#endif
 
 #if defined(DEBUG) && DEBUG > 0 && x86
 

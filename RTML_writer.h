@@ -87,8 +87,9 @@ void RTML_writer<T>::unsafe_enqueue(const size_t &index, const T &data, const ti
 template<typename T>
 void RTML_writer<T>::unsafe_enqueue_n(const std::list<std::pair<T,timespan>> &lst) {
     buffer->resetFrameCounter();
+    buffer->resetFrameTimestamp();
     // check if there is space left
-    if ( ! buffer->getLength() >= lst.size() )
+    if ( ! ( buffer->getLength() >= lst.size() ) )
         DEBUGV3("unsafe_enqueue_n is out of range\n");
     // copy all elements from the list into the buffer
     for (auto it = lst.begin(); it != lst.end(); it++)

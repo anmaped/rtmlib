@@ -1,18 +1,43 @@
+/*
+ *  rtmlib is a Real-Time Monitoring Library.
+ *  This library was initially developed in CISTER Research Centre as a proof
+ *  of concept by the current developer and, since then it has been freely
+ *  maintained and improved by the original developer.
+ *
+ *    Copyright (C) 2018 André Pedro
+ *
+ *  This file is part of rtmlib.
+ *
+ *  rtmlib is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  rtmlib is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef _ATOMIC_COMPAT_H_
 #define _ATOMIC_COMPAT_H_
 
-// arch dependent macros
+// Architecture dependent macros for atomic operations
 
-/* there is a big difference between __x86__ implementation and __ARM_CM4__
- * arm implements the atomic operations using Load-link/store-conditional
- * instructions and __x86__ implements it using compare-exchange.
+/* 
+ * There is a notable difference between __x86__ and __ARM_CM4__
+ * implementations. ARM macros implement the atomic operations using the
+ * Load-link/store-conditional instructions and x86 uses the compare-exchange.
  *
- * ARM implementation is too restrictive. it ensures that any inter-living
- *   is detected from any source (e.g., interrupts and shared memory among cores).
- * X86 implementation is too relaxed. ABA problem can occur since a thread B can change
- *   the value to the expected one by the thread A that started the atomic operation.
+ * Then, the ARM implementation is too restrictive. It ensures that any
+ * inter-living is detected from any source e.g. interrupts and shared memory
+ * among cores. The x86 implementation is too relaxed and suffers from the ABA
+ * problem since the thread B can change the value to the expected one by the
+ * thread A that begun the atomic operation.
  *
- *  Contention may be an issue... [TO CONFIRM]
  */
 
 #ifdef ARM_CM4_FP
@@ -65,6 +90,7 @@
 	} while( !( std::atomic_load(&dest) == OLD_FRAME_ADDRESS ) );
 
 	#define NATIVE_POINTER_TYPE uint32_t
+	#define NATIVE_ATOMIC_POINTER uint32_t
 
 #elif defined (__x86__) || defined (__x86_64__)
 
@@ -103,8 +129,12 @@
 
     #if defined (__x86_64__)
 	  #define NATIVE_POINTER_TYPE uint64_t
+	  typedef unsigned __int128 uint128_t;
+	  #define NATIVE_ATOMIC_POINTER uint128_t
 	#else
+	  #define USE_DOUBLE_CAS
 	  #define NATIVE_POINTER_TYPE uint32_t
+	  #define NATIVE_ATOMIC_POINTER uint64_t
 	#endif
 
 #else

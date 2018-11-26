@@ -68,6 +68,7 @@ public:
 
 template<typename T, size_t N>
 RTML_buffer<T, N>::RTML_buffer() :
+    array(),
     buffer(array, N),
     writer(false)
 {

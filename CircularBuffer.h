@@ -1,24 +1,25 @@
 /*
- *  rtemlib is a Real-Time Embedded Monitoring Library.
- *  It has been developed in CISTER, a Research Centre in Real-Time
- *  and Embedded Computing Systems.
+ *  rtmlib is a Real-Time Monitoring Library.
+ *  This library was initially developed in CISTER Research Centre as a proof
+ *  of concept by the current developer and, since then it has been freely
+ *  maintained and improved by the original developer.
  *
- *    Copyright (C) 2015 André Pedro
+ *    Copyright (C) 2018 André Pedro
  *
- *  This file is part of rtemlib.
+ *  This file is part of rtmlib.
  *
- *  rtemlib is free software: you can redistribute it and/or modify
+ *  rtmlib is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  rtemlib is distributed in the hope that it will be useful,
+ *  rtmlib is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with rtemlib.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef _CIRCULAR_BUFFER_H_
@@ -32,97 +33,116 @@
 #include "debug_compat.h"
 
 /**
- * Ring buffer for RTEML_reader and RTEML_writer.
+ * Ring buffer implementation to be used in RTML_reader and RTML_writer.
  *
- * This buffer receives a pre-allocated memory region with a certain length and allow
- * atomic enqueues of events.
+ * This buffer receives a pre-allocated memory region with a fixed size and
+ * does atomic operations over the data elements.
  *
  * @see Event.h
  *
- * @author André Pedro (anmap@isep.ipp.pt)
+ * @author André Pedro
  * @date
  */
 template<typename T>
 class CircularBuffer {
 private:
 
-    // type identifying state enumeration for each node
-    enum st {UPDATABLE=0, READY};
+    /*
+     * This enumeration type identifies when buffer elements are in updating
+     * or ready state.
+     */
+    enum st {UPDATING=0, READY};
 
     /*
-     * The definition of nodes for circular array. 
+     * Node's type for the elements inside the ring buffer. 
      */
-    struct __node {
+    struct _node {
         std::atomic<st> state;
         Event<T> ev;
+
+        _node() : state(READY), ev(0,0) {}
     };
 
     /* 
-     * This secondary union is used to divide a 64bit wide integer.
+     * This union type is used to split a 64 wide integer into two equaly
+     * divided variables; idx means the current index/counting and pg is the
+     * pointer to the page that could be local or external. pg should be 64bit
+     * wide when using 64bit architectures. This union type is not used in arm
+     * architecture neither in x86_64.
      */
+#ifdef USE_DOUBLE_CAS
     union cnt {
-        uint64_t ct64;
+        NATIVE_ATOMIC_POINTER ct64;
         struct {
-            uint32_t idx;
-            uint32_t t;
+            NATIVE_POINTER_TYPE pg;
+            NATIVE_POINTER_TYPE idx;
         };
+    };
+#endif
+
+    /*
+     * The enqueue operation requires a frame page for doing Compare-And-Swap
+     * (CAS). The frame contains the absolute current time from the initial
+     * registered clock. It can be days, years, months..., or relative e.g. the
+     * processor clock. We assume time to be of type uint64_t.
+     */
+    struct _page {
+
+        uint64_t time;
+        size_t counter;
+
+        _page(uint64_t t) :  time(t) {}
     };
 
     /*
-     * The enqueue operation requires a frame for CAS purposes. The frame is composed
-     * by the absolute times. It can be real-time (days, years, months...), or
-     * monotonic, i.e., the processor timer). Normally, it is of type uint64_t.
+     * Constant that saves the absolute time when buffer is initialized by
+     * the aplication.
      */
-    struct timming_page {
-
-        uint64_t current_time;
-        NATIVE_POINTER_TYPE counter;
-
-        //timming_page() {}
-        timming_page(uint64_t t) :  current_time(t) {}
-    };
-
-    // the absolute time when buffer is ready to accept nodes
     const timespanw initial_clock;
 
-    // global page frame
-    struct timming_page local_tm_page;
+    /*
+     * Stores the local page frame relative to this buffer instantiation.
+     */
+    struct _page local_page;
     
-    /** Constant pointer to the start of the array */
-    struct __node *const ca_accesspointer;
+    /**
+     * Stores a constant pointer to the begin of the buffer (it is normally
+     * an array containing a continuous chunck of memory).
+     */
+    struct _node *const ca_accesspointer;
 
-    /** Array Length */
+    /**
+     * Stores the size of the available memory starting at ca_accesspointer. It
+     * is constant along the usage of this CircularBuffer.
+     */
     const size_t ca_length;
 
     /*
-    *  There are two modes of Compare-and-swap (CAS). The first is the double CAS
-    *  for x86, and the second is the simple CAS. Simple CAS suffers from ABA problem.
-    *  However in our setting we strongly believe that is not affected since we swap
-    *  distinct addresses that were previously allocated. [VERIFY]
+    * We implement two types of CAS. The double CAS is used for x86 and the
+    * simple CAS to arm and x86_64 platforms. Note that simple CAS suffers from ABA
+    * problem unlike double CAS that solves it. However, as we have implemented
+    * it, our setting is not afected by such phonema since we swap distinct
+    * addresses that were previously allocated, i.e., they are unique.
     */
     FRAME_ADDRESS_type FRAME_ADDRESS;
     FRAME_ADDRESS_type & frame = FRAME_ADDRESS;
 
+    /*
+     * Some helper functions for managing the frames.
+     */
+    size_t   getCounterValue(FRAME_ADDRESS_subtype counter) const;
+    void     setCounterValue(FRAME_ADDRESS_subtype &counter, size_t idx) const;
 
-    timeabs getCounterCurrentTimestamp(uint64_t counter) const;
-    timeabs getCounterCurrentTimestamp(uint32_t counter) const;
+    NATIVE_POINTER_TYPE getCounterCurrentPage(FRAME_ADDRESS_subtype counter) const;
+    void     setCounterCurrentPage(FRAME_ADDRESS_subtype &counter, NATIVE_POINTER_TYPE t) const;
 
-    size_t   getCounterValue(uint64_t counter) const;
-    size_t   getCounterValue(uint32_t counter) const;
-
-    uint32_t getCounterCurrentPage(uint64_t counter) const;
-    uint32_t getCounterCurrentPage(uint32_t counter) const;
-
-    void     setCounterCurrentPage(uint64_t &counter, uint32_t t) const;
-    void     setCounterCurrentPage(uint32_t &counter, uint32_t t) const;
-
-    void     setCounterValue(uint64_t &counter, size_t idx) const;
-    void     setCounterValue(uint32_t &counter, size_t idx) const;
+    timeabs getCounterCurrentTimestamp(FRAME_ADDRESS_subtype counter) const;
+    void    setCounterCurrentTimestamp(FRAME_ADDRESS_subtype &lcounter, timeabs t) const;
 
 public:
 
-    typedef struct __node node;
-    typedef struct timming_page tm_page;
+    typedef struct _node node;
+    typedef struct _page tm_page;
 
     /**
      * Instantiates a new buffer using external memory allocation.
@@ -135,18 +155,19 @@ public:
     /**
      * Atomically enqueues data into the circular buffer.
      *
-     * Index is always atomically updated after writing an element, and state
+     * Index is atomically updated after writing an element, and state
      * variables are also atomically swapped. A timestamp is attached when the
      * element is enqueued.
      *
      * @param data the data to be pushed.
+     * @param page the page frame to be used during the swap.
      */
-    void enqueue(const T &data, tm_page & new_tm_page);
+    void enqueue(const T &data, tm_page & page);
 
     /**
      * Reads an index from the buffer.
      *
-     * @param event A reference to an event object where the data will be stored.
+     * @param event a reference to an event object where the data will be stored.
      * @param index the index to read from.
      */
     void readEvent(Event<T> &event, const size_t index) const;
@@ -215,19 +236,20 @@ public:
     #ifdef USE_UNSAFE_METHODS
         void writeEvent(T data, timespan t, const size_t index);
         void resetFrameCounter();
+        void resetFrameTimestamp();
     #endif
 };
 
 template<typename T>
 CircularBuffer<T>::CircularBuffer(node* const &array, const size_t length) :
     initial_clock(clockgettime()),
-    local_tm_page(initial_clock),
+    local_page(initial_clock),
     ca_accesspointer(array),
     ca_length(length)
 {
     FRAME_ADDRESS_subtype x;
 
-    setCounterCurrentPage(x, (NATIVE_POINTER_TYPE)&local_tm_page);
+    setCounterCurrentPage(x, (NATIVE_POINTER_TYPE)&local_page);
     setCounterValue(x, 0);
 
     getFrameReference().store(x);
@@ -239,87 +261,89 @@ size_t CircularBuffer<T>::counterToIndex(uint32_t lcounter) const {
 }
 
 template<typename T>
-timeabs CircularBuffer<T>::getCounterCurrentTimestamp(uint64_t lcounter) const
+size_t CircularBuffer<T>::getCounterValue(FRAME_ADDRESS_subtype lcounter) const
 {
-    union cnt x;
-    x.ct64 = lcounter;
-    tm_page * previous_tm_page = (tm_page *) x.t;
-
-    return previous_tm_page->current_time;
-}
-
-template<typename T>
-size_t CircularBuffer<T>::getCounterValue(uint64_t lcounter) const
-{
+#ifdef USE_DOUBLE_CAS
     union cnt x;
     x.ct64 = lcounter;
     return x.idx;
+#else
+    tm_page * previous_tm_page = (tm_page *) lcounter;
+
+    return previous_tm_page->counter;
+#endif
 }
 
 template<typename T>
-uint32_t CircularBuffer<T>::getCounterCurrentPage(uint64_t lcounter) const
+void CircularBuffer<T>::setCounterValue(FRAME_ADDRESS_subtype &lcounter, size_t idx) const
 {
-    union cnt x;
-    x.ct64 = lcounter;
-    return x.t;
-}
-
-template<typename T>
-void CircularBuffer<T>::setCounterCurrentPage(uint64_t &lcounter, uint32_t t) const
-{
-    union cnt x;
-    x.ct64 = lcounter;
-    x.t = t;
-    lcounter = x.ct64;
-}
-
-template<typename T>
-void CircularBuffer<T>::setCounterValue(uint64_t &lcounter, size_t idx) const
-{
+#ifdef USE_DOUBLE_CAS
     union cnt x;
     x.ct64 = lcounter;
     x.idx = idx;
     lcounter = x.ct64;
-}
-
-template<typename T>
-timeabs CircularBuffer<T>::getCounterCurrentTimestamp(uint32_t lcounter) const
-{
+#else
     tm_page * previous_tm_page = (tm_page *) lcounter;
-
-    return previous_tm_page->current_time;
-}
-
-template<typename T>
-size_t CircularBuffer<T>::getCounterValue(uint32_t lcounter) const
-{
-    tm_page * previous_tm_page = (tm_page *) lcounter;
-
-    return previous_tm_page->counter;
-}
-
-template<typename T>
-uint32_t CircularBuffer<T>::getCounterCurrentPage(uint32_t lcounter) const
-{
-    return lcounter;
-}
-
-template<typename T>
-void CircularBuffer<T>::setCounterCurrentPage(uint32_t &lcounter, uint32_t pg) const
-{
-    lcounter = pg;
-}
-
-template<typename T>
-void CircularBuffer<T>::setCounterValue(uint32_t &lcounter, size_t idx) const
-{
-    tm_page * previous_tm_page = (tm_page *) lcounter;
-
     previous_tm_page->counter = idx;
+#endif
 }
 
 template<typename T>
-void CircularBuffer<T>::enqueue(const T &data, tm_page & new_tm_page) {
+NATIVE_POINTER_TYPE CircularBuffer<T>::getCounterCurrentPage(FRAME_ADDRESS_subtype lcounter) const
+{
+#ifdef USE_DOUBLE_CAS
+    union cnt x;
+    x.ct64 = lcounter;
+    return x.pg;
+#else
+    return lcounter;
+#endif
+}
+
+template<typename T>
+void CircularBuffer<T>::setCounterCurrentPage(FRAME_ADDRESS_subtype &lcounter, NATIVE_POINTER_TYPE pg) const
+{
+#ifdef USE_DOUBLE_CAS
+    union cnt x;
+    x.ct64 = lcounter;
+    x.pg = pg;
+    lcounter = x.ct64;
+#else
+     lcounter = pg;
+#endif
+}
+
+template<typename T>
+timeabs CircularBuffer<T>::getCounterCurrentTimestamp(uint64_t lcounter) const
+{
+#ifdef USE_DOUBLE_CAS
+    union cnt x;
+    x.ct64 = lcounter;
+    tm_page * previous_tm_page = (tm_page *) x.pg;
+#else
+    tm_page * previous_tm_page = (tm_page *) lcounter;
+#endif
+
+    return previous_tm_page->time;
+}
+
+template<typename T>
+void CircularBuffer<T>::setCounterCurrentTimestamp(FRAME_ADDRESS_subtype &lcounter, timeabs t) const
+{
+#ifdef USE_DOUBLE_CAS
+    union cnt x;
+    x.ct64 = lcounter;
+    tm_page * previous_tm_page = (tm_page *) x.pg;
+    previous_tm_page->time = t;
+#else
+    tm_page * previous_tm_page = (tm_page *) lcounter;
+    previous_tm_page->time = t;
+#endif
+}
+
+
+template<typename T>
+void CircularBuffer<T>::enqueue(const T &data, tm_page & page) {
 
     uint32_t tempCounter;
     size_t tempIndex;
@@ -353,36 +377,36 @@ void CircularBuffer<T>::enqueue(const T &data, tm_page & new_tm_page) {
             tmptime,
             getCounterCurrentTimestamp(OLD_FRAME_ADDRESS),
             tmptime - getCounterCurrentTimestamp(OLD_FRAME_ADDRESS),
-            new_tm_page,
-            &local_tm_page
+            page,
+            &local_page
         );
 
         nextTime = tmptime - getCounterCurrentTimestamp(OLD_FRAME_ADDRESS) ;
 
-        // case new_tm_page is currently in use then swap it with the local_tm_page
-        if ( getCounterCurrentPage(OLD_FRAME_ADDRESS) == (uint32_t)&new_tm_page )
+        // if page is currently in use then swap it with the local_page
+        if ( getCounterCurrentPage(OLD_FRAME_ADDRESS) == &page )
         {
             DEBUGV3("using main page\n");
-            ntp = &local_tm_page;
+            ntp = &local_page;
         }
         else
         {
-            ntp = &new_tm_page;
+            ntp = &page;
         }
 
-        ntp->current_time = tmptime;
+        ntp->time = tmptime;
 
         // lets create the new value using the old value with incremented counter and new page
         newtempCounter = tempCounter + 1;
         
-        setCounterCurrentPage(new_value, (uint32_t)ntp);
+        setCounterCurrentPage(new_value, ntp);
         setCounterValue(new_value, newtempCounter);
 
-        // lets mark the event updatable
-        ca_accesspointer[tempIndex].state.store(UPDATABLE);
+        // lets mark the event updating
+        ca_accesspointer[tempIndex].state.store(UPDATING);
 
         DEBUGV3("Time:%lld -- %ld : Pointer: %p\n",
-            ntp->current_time,
+            ntp->time,
             nextTime,
             ntp
         );
@@ -466,7 +490,7 @@ void CircularBuffer<T>::writeEvent(T data, timespan t, const size_t index)
     FRAME_ADDRESS_subtype f = frame.load();
     setCounterValue(f,getCounterValue(f) + 1);
     frame.store(f);
-    local_tm_page.current_time = local_tm_page.current_time + t;
+    local_page.time = local_page.time + t;
 }
 
 template<typename T>
@@ -475,7 +499,14 @@ void CircularBuffer<T>::resetFrameCounter()
     FRAME_ADDRESS_subtype f = frame.load();
     setCounterValue(f, 0);
     frame.store(f);
-    local_tm_page.current_time = initial_clock;
+}
+
+template<typename T>
+void CircularBuffer<T>::resetFrameTimestamp()
+{
+    FRAME_ADDRESS_subtype f = frame.load();
+    setCounterCurrentTimestamp(f, 0);
+    frame.store(f);
 }
 #endif
 

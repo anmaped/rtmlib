@@ -212,8 +212,10 @@ public:
      */
     FRAME_ADDRESS_type & getFrameReference() const { return frame; };
 
-    // functions for debug purposes only
-    DEBUG_HELPER_BUFFER_FUNCTIONS();
+    #ifdef USE_UNSAFE_METHODS
+        void writeEvent(T data, timespan t, const size_t index);
+        void resetFrameCounter();
+    #endif
 };
 
 template<typename T>
@@ -454,5 +456,27 @@ timespanw CircularBuffer<T>::getTimeAlignment(timespanw unaligned_time) const
     return (unaligned_time >= initial_clock)? unaligned_time - initial_clock : 0;
 };
 
+
+#ifdef USE_UNSAFE_METHODS
+template<typename T>
+void CircularBuffer<T>::writeEvent(T data, timespan t, const size_t index)
+{
+    ca_accesspointer[index].ev.setTime(t);
+    ca_accesspointer[index].ev.setData(data);
+    FRAME_ADDRESS_subtype f = frame.load();
+    setCounterValue(f,getCounterValue(f) + 1);
+    frame.store(f);
+    local_tm_page.current_time = local_tm_page.current_time + t;
+}
+
+template<typename T>
+void CircularBuffer<T>::resetFrameCounter()
+{
+    FRAME_ADDRESS_subtype f = frame.load();
+    setCounterValue(f, 0);
+    frame.store(f);
+    local_tm_page.current_time = initial_clock;
+}
+#endif
 
 #endif //_CIRCULAR_BUFFER_H_

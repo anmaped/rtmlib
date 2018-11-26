@@ -2,11 +2,10 @@
 #ifndef _TASK_COMPAT_H_
 #define _TASK_COMPAT_H_
 
-
-
-#include <sys/types.h>
 #include <pthread.h>
 #include <errno.h>
+#include <sys/types.h>
+
 #include "time_compat.h"
 #include "debug_compat.h"
 

@@ -1,3 +1,26 @@
+/*
+ *  rtmlib is a Real-Time Monitoring Library.
+ *  This library was initially developed in CISTER Research Centre as a proof
+ *  of concept by the current developer and, since then it has been freely
+ *  maintained and improved by the original developer.
+ *
+ *    Copyright (C) 2018 André Pedro
+ *
+ *  This file is part of rtmlib.
+ *
+ *  rtmlib is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  rtmlib is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef _TIME_COMPAT_H_
 #define _TIME_COMPAT_H_
@@ -7,15 +30,23 @@
 #ifdef __NUTTX__
 #include <nuttx/clock.h>
 
-/* we have for timestamps uint8_t uint16_t uint24_t uint32_t and uint64_t
-* uint8_t is not enough even for super fast monitors (huge overhead)
-* uint16_t can be enough for faster monitors (Cortex-M is not the case)
-* uint24_t is enough if the monitor has a period aproximatly of 100hz
-* uint32_t is enough if the monitor has a period aproximatly of 1hz
-* for other cases uint64_t is required
-* the timestamps are always in nanoseconds
-* @author Andre Pedro (anmap@isep.ipp.pt)
-*/
+/* 
+ * We may interpret timestamps as uint8_t, uint16_t, uint24_t, uint32_t, and
+ * uint64_t.
+ *
+ *  - uint8_t only contains 255 ticks and is small; It means that we have to
+ *  execute the monitors as fast as 255 ticks, inducing a huge overhead.
+ *
+ *  - uint16_t can be enough for faster monitors (the Cortex-M is excluded)
+ *
+ *  - uint24_t is enough if the monitor has a period no bigger than 100hz
+ *
+ *  - uint32_t is enough if the monitor has a period no bigger than 1hz
+ *
+ *  - for all the other cases uint64_t is required
+ *
+ * In this note, the timestamps are measured in nanoseconds.
+ */
 typedef uint64_t timeabs;
 typedef uint32_t timespan;
 

@@ -1,15 +1,37 @@
+/*
+ *  rtmlib is a Real-Time Monitoring Library.
+ *  This library was initially developed in CISTER Research Centre as a proof
+ *  of concept by the current developer and, since then it has been freely
+ *  maintained and improved by the original developer.
+ *
+ *    Copyright (C) 2018 André Pedro
+ *
+ *  This file is part of rtmlib.
+ *
+ *  rtmlib is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  rtmlib is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef _RTEML_READER_H_
 #define _RTEML_READER_H_
-
-#include <time.h>
-
-#include "CircularBuffer.h"
 
 #include <utility>
 #include <array>
 #include <tuple>
 
+#include <time.h>
 #include "Event.h"
+#include "Ring_buffer.h"
 
 #define LOCAL_BUFFER_SIZE 10
 #define DEQUEUE_SIZE(size) dequeue_## size
@@ -29,24 +51,24 @@ enum state_rd_t {AVAILABLE, AVAILABLE_PARTIALLY, UNAVAILABLE, OVERWRITTEN};
 
 
 /**
- * Reads events from an RTML_buffer.
+ * Reads events from a Ring_buffer.
  *
- * @author André Pedro (anmap@isep.ipp.pt)
+ * @author André Pedro
  * @date
  */
 template<typename T>
 class RTML_reader {
 private:
-    /**  Constant pointer to a constant circular Buffer this RTML_reader performs atomic read operations from.
-     * @see CircularBuffer
+    /**  Constant pointer to a ring Buffer this RTML_reader reads from.
+     * @see Ring_buffer
      */
-    const CircularBuffer<T> *buffer;
+    const Ring_buffer<T> *buffer;
 
     /** Number of readed elements */
     size_t n_elems_reader;
 
     /** The timestamp of the last event this buffer read.
-     * @see time.h
+     * @see time_compat.h
      */
     timeabs lastread_ts;
 
@@ -59,7 +81,7 @@ public:
      *
      * @param buffer a constant pointer that points to a constant buffer.
      */
-    RTML_reader(const CircularBuffer<T> * buffer);
+    RTML_reader(const Ring_buffer<T> * buffer);
 
     /**
      * Dequeues the next event from the buffer.
@@ -81,7 +103,7 @@ public:
     dequeue_n_declaration(20);
 
     /**
-     * Synchronize the RTML_reader index according to a timestamp
+     * Synchronizes the RTML_reader index according to a timestamp
      *
      * @param time defines the timestamp to syncronize.
      *
@@ -99,23 +121,23 @@ public:
 
 
     /**
-     * gets the lower bound.
+     * Gets the lower bound.
      *
      * @return 0
      */
     size_t getLowerIdx() const { return 0; }
 
     /**
-     * gets the upper bound.
+     * Gets the upper bound.
      *
      * @return an unsigned integer
      */
     size_t getHigherIdx() const { return buffer->getLength(); }
 
     /**
-     * gets the buffer state.
+     * Gets the buffer state.
      *
-     * @return a tuple consisting of an absolute time stamp and an index
+     * @return a pair consisting by one absolute timestamp and one index
      */
     std::pair<timeabs, size_t> getCurrentBufferState() const { timeabs time;
         size_t idx; buffer->getState(time, idx);
@@ -126,7 +148,7 @@ public:
 };
 
 template<typename T>
-RTML_reader<T>::RTML_reader(const CircularBuffer<T> * bbuffer) :
+RTML_reader<T>::RTML_reader(const Ring_buffer<T> * bbuffer) :
     buffer(bbuffer),
     n_elems_reader(0),
     lastread_ts(0)
@@ -199,7 +221,7 @@ dequeue_n(20)
     // lets dequeue a set of AVAILABLE events at the same time using dequeue operation
     for(uint32_t i=0; i<local_buffer.size(); i++)
     {
-        // dequeue event as a tuple consisting of an event and the code.
+        // dequeue event as a tuple consisting by one event and one code.
         if(idx == -1)
             tuple = dequeue();
         else

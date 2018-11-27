@@ -22,8 +22,8 @@
  *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CIRCULAR_BUFFER_H_
-#define _CIRCULAR_BUFFER_H_
+#ifndef _RING_BUFFER_H_
+#define _RING_BUFFER_H_
 
 #include <stdio.h>
 #include <time.h>
@@ -44,7 +44,7 @@
  * @date
  */
 template<typename T>
-class CircularBuffer {
+class Ring_buffer {
 private:
 
     /*
@@ -113,7 +113,7 @@ private:
 
     /**
      * Stores the size of the available memory starting at ca_accesspointer. It
-     * is constant along the usage of this CircularBuffer.
+     * is constant along the usage of this Ring_buffer.
      */
     const size_t ca_length;
 
@@ -150,7 +150,7 @@ public:
      * @param array a reference to a constant pointer that points to the array.
      * @param length the length of the array.
      */
-    CircularBuffer(node * const &array, const size_t length);
+    Ring_buffer(node * const &array, const size_t length);
 
     /**
      * Atomically enqueues data into the circular buffer.
@@ -241,7 +241,7 @@ public:
 };
 
 template<typename T>
-CircularBuffer<T>::CircularBuffer(node* const &array, const size_t length) :
+Ring_buffer<T>::Ring_buffer(node* const &array, const size_t length) :
     initial_clock(clockgettime()),
     local_page(initial_clock),
     ca_accesspointer(array),
@@ -256,12 +256,12 @@ CircularBuffer<T>::CircularBuffer(node* const &array, const size_t length) :
 }
 
 template<typename T>
-size_t CircularBuffer<T>::counterToIndex(uint32_t lcounter) const {
+size_t Ring_buffer<T>::counterToIndex(uint32_t lcounter) const {
     return lcounter % getLength();
 }
 
 template<typename T>
-size_t CircularBuffer<T>::getCounterValue(FRAME_ADDRESS_subtype lcounter) const
+size_t Ring_buffer<T>::getCounterValue(FRAME_ADDRESS_subtype lcounter) const
 {
 #ifdef USE_DOUBLE_CAS
     union cnt x;
@@ -275,7 +275,7 @@ size_t CircularBuffer<T>::getCounterValue(FRAME_ADDRESS_subtype lcounter) const
 }
 
 template<typename T>
-void CircularBuffer<T>::setCounterValue(FRAME_ADDRESS_subtype &lcounter, size_t idx) const
+void Ring_buffer<T>::setCounterValue(FRAME_ADDRESS_subtype &lcounter, size_t idx) const
 {
 #ifdef USE_DOUBLE_CAS
     union cnt x;
@@ -289,7 +289,7 @@ void CircularBuffer<T>::setCounterValue(FRAME_ADDRESS_subtype &lcounter, size_t 
 }
 
 template<typename T>
-NATIVE_POINTER_TYPE CircularBuffer<T>::getCounterCurrentPage(FRAME_ADDRESS_subtype lcounter) const
+NATIVE_POINTER_TYPE Ring_buffer<T>::getCounterCurrentPage(FRAME_ADDRESS_subtype lcounter) const
 {
 #ifdef USE_DOUBLE_CAS
     union cnt x;
@@ -301,7 +301,7 @@ NATIVE_POINTER_TYPE CircularBuffer<T>::getCounterCurrentPage(FRAME_ADDRESS_subty
 }
 
 template<typename T>
-void CircularBuffer<T>::setCounterCurrentPage(FRAME_ADDRESS_subtype &lcounter, NATIVE_POINTER_TYPE pg) const
+void Ring_buffer<T>::setCounterCurrentPage(FRAME_ADDRESS_subtype &lcounter, NATIVE_POINTER_TYPE pg) const
 {
 #ifdef USE_DOUBLE_CAS
     union cnt x;
@@ -314,7 +314,7 @@ void CircularBuffer<T>::setCounterCurrentPage(FRAME_ADDRESS_subtype &lcounter, N
 }
 
 template<typename T>
-timeabs CircularBuffer<T>::getCounterCurrentTimestamp(uint64_t lcounter) const
+timeabs Ring_buffer<T>::getCounterCurrentTimestamp(FRAME_ADDRESS_subtype lcounter) const
 {
 #ifdef USE_DOUBLE_CAS
     union cnt x;
@@ -328,7 +328,7 @@ timeabs CircularBuffer<T>::getCounterCurrentTimestamp(uint64_t lcounter) const
 }
 
 template<typename T>
-void CircularBuffer<T>::setCounterCurrentTimestamp(FRAME_ADDRESS_subtype &lcounter, timeabs t) const
+void Ring_buffer<T>::setCounterCurrentTimestamp(FRAME_ADDRESS_subtype &lcounter, timeabs t) const
 {
 #ifdef USE_DOUBLE_CAS
     union cnt x;
@@ -343,7 +343,7 @@ void CircularBuffer<T>::setCounterCurrentTimestamp(FRAME_ADDRESS_subtype &lcount
 
 
 template<typename T>
-void CircularBuffer<T>::enqueue(const T &data, tm_page & page) {
+void Ring_buffer<T>::enqueue(const T &data, tm_page & page) {
 
     uint32_t tempCounter;
     size_t tempIndex;
@@ -428,13 +428,13 @@ void CircularBuffer<T>::enqueue(const T &data, tm_page & page) {
 }
 
 template<typename T>
-void CircularBuffer<T>::readEvent(Event<T> &event, const size_t index) const
+void Ring_buffer<T>::readEvent(Event<T> &event, const size_t index) const
 {
     event = ca_accesspointer[index].ev;
 }
 
 template<typename T>
-void CircularBuffer<T>::getState(timeabs &time, size_t &idx) const
+void Ring_buffer<T>::getState(timeabs &time, size_t &idx) const
 {
     /* Frame can be swapped when time and idx are retrieved; a guarantee for
      * frame swapping is ensured by comparing the frame address before and
@@ -447,7 +447,7 @@ void CircularBuffer<T>::getState(timeabs &time, size_t &idx) const
 }
 
 template<typename T>
-size_t CircularBuffer<T>::getCounterId() const
+size_t Ring_buffer<T>::getCounterId() const
 {
     size_t idx;
 
@@ -463,19 +463,19 @@ size_t CircularBuffer<T>::getCounterId() const
 }
 
 template<typename T>
-size_t CircularBuffer<T>::getHead() const
+size_t Ring_buffer<T>::getHead() const
 {
     return counterToIndex(getCounterId());
 }
 
 template<typename T>
-bool CircularBuffer<T>::nodeIsReady(const size_t idx) const
+bool Ring_buffer<T>::nodeIsReady(const size_t idx) const
 {
     return ca_accesspointer[idx].state.load() == READY;
 }
 
 template<typename T>
-timespanw CircularBuffer<T>::getTimeAlignment(timespanw unaligned_time) const
+timespanw Ring_buffer<T>::getTimeAlignment(timespanw unaligned_time) const
 {
     return (unaligned_time >= initial_clock)? unaligned_time - initial_clock : 0;
 };
@@ -483,7 +483,7 @@ timespanw CircularBuffer<T>::getTimeAlignment(timespanw unaligned_time) const
 
 #ifdef USE_UNSAFE_METHODS
 template<typename T>
-void CircularBuffer<T>::writeEvent(T data, timespan t, const size_t index)
+void Ring_buffer<T>::writeEvent(T data, timespan t, const size_t index)
 {
     ca_accesspointer[index].ev.setTime(t);
     ca_accesspointer[index].ev.setData(data);
@@ -494,7 +494,7 @@ void CircularBuffer<T>::writeEvent(T data, timespan t, const size_t index)
 }
 
 template<typename T>
-void CircularBuffer<T>::resetFrameCounter()
+void Ring_buffer<T>::resetFrameCounter()
 {
     FRAME_ADDRESS_subtype f = frame.load();
     setCounterValue(f, 0);
@@ -502,7 +502,7 @@ void CircularBuffer<T>::resetFrameCounter()
 }
 
 template<typename T>
-void CircularBuffer<T>::resetFrameTimestamp()
+void Ring_buffer<T>::resetFrameTimestamp()
 {
     FRAME_ADDRESS_subtype f = frame.load();
     setCounterCurrentTimestamp(f, 0);
@@ -510,4 +510,4 @@ void CircularBuffer<T>::resetFrameTimestamp()
 }
 #endif
 
-#endif //_CIRCULAR_BUFFER_H_
+#endif //_RING_BUFFER_H_

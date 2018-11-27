@@ -1,26 +1,48 @@
+/*
+ *  rtmlib is a Real-Time Monitoring Library.
+ *  This library was initially developed in CISTER Research Centre as a proof
+ *  of concept by the current developer and, since then it has been freely
+ *  maintained and improved by the original developer.
+ *
+ *    Copyright (C) 2018 André Pedro
+ *
+ *  This file is part of rtmlib.
+ *
+ *  rtmlib is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  rtmlib is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef _RTML_BUFFER_H_
 #define _RTML_BUFFER_H_
 
 #include <stdio.h>
 #include <time.h>
 
-#include "CircularBuffer.h"
+#include "Ring_buffer.h"
 #include "RTML_writer.h"
 #include "RTML_reader.h"
 
 /**
- * RTML_buffer allows instrumented applications and monitors to share the
- * the same buffer by splinting it into read and write operations.
- *
- * Monitor uses RTML_reader, and RTML_writer is reserved for software modules
- * under observation.
+ * RTML_buffer is able to support applications and monitors that requires to
+ * share the same buffer by splinting operations to read and write, e.g.
+ * the monitor uses the RTML_reader, and the RTML_writer can be used for
+ * instrumentation.
  *
  * @see Event
  * @see RTML_reader
  * @see RTML_monitor
  *
- * @author André Pedro (anmap@isep.ipp.pt)
- * @author Humberto Carvalho (1129498@isep.ipp.pt)
+ * @author André Pedro
  * @date
  */
 template<typename T, size_t N>
@@ -29,16 +51,18 @@ private:
     /**
      * The Event array where events are kept. Size is defined via template
      * parameter N, avoiding dynamic memory usage.
+     *
      * @see Event
      */
-    typedef CircularBuffer<T> cb;
+    typedef Ring_buffer<T> cb;
     typename cb::node array[N];
 
     /**
      * The infinite buffer that is used for readers and writers of the RTEML.
-     * @see CircularBuffer
+     *
+     * @see Ring_buffer
      */
-    CircularBuffer<T> buffer;
+    Ring_buffer<T> buffer;
 
     /**
      * The writer flag that indicates if a writer has been attached.
@@ -58,10 +82,10 @@ public:
      */
     size_t getLength() const;
 
-    CircularBuffer<T> * getBuffer() const;
+    Ring_buffer<T> * getBuffer() const;
 
     /**
-     * Debugs the infinite buffer into the stdout
+     * Debugs the buffer into the stdout
      */
     void debug() const;
 };
@@ -81,8 +105,8 @@ size_t RTML_buffer<T, N>::getLength() const {
 }
 
 template<typename T, size_t N>
-CircularBuffer<T> * RTML_buffer<T, N>::getBuffer() const {
-    return (CircularBuffer<T> *)&buffer;
+Ring_buffer<T> * RTML_buffer<T, N>::getBuffer() const {
+    return (Ring_buffer<T> *)&buffer;
 }
 
 template<typename T, size_t N>

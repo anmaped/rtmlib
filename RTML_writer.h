@@ -1,3 +1,27 @@
+/*
+ *  rtmlib is a Real-Time Monitoring Library.
+ *  This library was initially developed in CISTER Research Centre as a proof
+ *  of concept by the current developer and, since then it has been freely
+ *  maintained and improved by the original developer.
+ *
+ *    Copyright (C) 2018 André Pedro
+ *
+ *  This file is part of rtmlib.
+ *
+ *  rtmlib is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  rtmlib is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with rtmlib.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef _RTEML_WRITER_H_
 #define _RTEML_WRITER_H_
 
@@ -6,33 +30,33 @@
 #endif
 
 #include "Event.h"
-#include "CircularBuffer.h"
+#include "Ring_buffer.h"
 
 /**
- * Writes events to a RTML_buffer.
+ * Writes events to a Ring_buffer.
  *
- * @see RTML_buffer
+ * @see Ring_buffer
  *
- * @author André Pedro (anmap@isep.ipp.pt)
- * @author Humberto Carvalho (1120409@isep.ipp.pt)
+ * @author André Pedro
  * @date
  */
 template<typename T>
 class RTML_writer {
 private:
     /**
-     * Pointer to a circular buffer this RTML_writer writes to.
-     * @see RTML_buffer
+     * Points to a ring buffer this RTML_writer writes to.
+     *
+     * @see Ring_buffer
      */
-    CircularBuffer<T> *const buffer;
+    Ring_buffer<T> *const buffer;
 
     /*
      * Reference to the local page frame. Each writer will provide a proper
      * frame to be swaped with the global frame.
      */
-    typedef CircularBuffer<T> cb;
-    typename cb::tm_page new_tm_page;
-    typename cb::tm_page & new_tm_page_ref = new_tm_page;
+    typedef Ring_buffer<T> cb;
+    typename cb::tm_page page;
+    typename cb::tm_page &page_ref = page;
 
 public:
 
@@ -41,7 +65,7 @@ public:
      *
      * @param buffer the Buffer to write to.
      */
-    RTML_writer(CircularBuffer<T> *const buffer);
+    RTML_writer(Ring_buffer<T> *const buffer);
 
     /**
     * enqueues an event to the Buffer.
@@ -50,10 +74,10 @@ public:
     */
     void enqueue(const T &data);
 
-    #ifdef USE_UNSAFE_METHODS
+#ifdef USE_UNSAFE_METHODS
     void unsafe_enqueue(const size_t &index, const T &data, const timespan &t);
     void unsafe_enqueue_n(const std::list<std::pair<T,timespan>> &lst);
-    #endif
+#endif
 
     /**
     * Sets this RTML_writer Buffer.
@@ -62,19 +86,18 @@ public:
     *
     * @param buffer the buffer to configure this EventReader to.
     */
-    void setBuffer(CircularBuffer<T> *buffer);
+    void setBuffer(Ring_buffer<T> *buffer);
 };
 
 template<typename T>
-RTML_writer<T>::RTML_writer(CircularBuffer<T> *const bbuffer) : buffer(bbuffer), new_tm_page(0)
+RTML_writer<T>::RTML_writer(Ring_buffer<T> *const bbuffer) : buffer(bbuffer), page(0)
 {
 
 }
 
 template<typename T>
 void RTML_writer<T>::enqueue(const T &data) {
-    // lets use the available page
-    buffer->enqueue(data, new_tm_page_ref);
+    buffer->enqueue(data, page_ref);
 }
 
 #ifdef USE_UNSAFE_METHODS
@@ -98,8 +121,8 @@ void RTML_writer<T>::unsafe_enqueue_n(const std::list<std::pair<T,timespan>> &ls
 #endif
 
 template<typename T>
-void RTML_writer<T>::setBuffer(CircularBuffer<T> * const bbuffer) {
-    //buffer = bbuffer;
+void RTML_writer<T>::setBuffer(Ring_buffer<T> * const _buffer) {
+    buffer = _buffer;
 }
 
 #endif //_RTEML_WRITER_H_

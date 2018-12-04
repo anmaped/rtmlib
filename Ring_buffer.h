@@ -384,7 +384,7 @@ void Ring_buffer<T>::enqueue(const T &data, tm_page & page) {
         nextTime = tmptime - getCounterCurrentTimestamp(OLD_FRAME_ADDRESS) ;
 
         // if page is currently in use then swap it with the local_page
-        if ( getCounterCurrentPage(OLD_FRAME_ADDRESS) == &page )
+        if ( getCounterCurrentPage(OLD_FRAME_ADDRESS) == (NATIVE_POINTER_TYPE) &page )
         {
             DEBUGV3("using main page\n");
             ntp = &local_page;
@@ -399,7 +399,7 @@ void Ring_buffer<T>::enqueue(const T &data, tm_page & page) {
         // lets create the new value using the old value with incremented counter and new page
         newtempCounter = tempCounter + 1;
         
-        setCounterCurrentPage(new_value, ntp);
+        setCounterCurrentPage(new_value, (NATIVE_POINTER_TYPE) ntp);
         setCounterValue(new_value, newtempCounter);
 
         // lets mark the event updating

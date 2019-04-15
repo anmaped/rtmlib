@@ -505,7 +505,7 @@ template<typename T>
 void Ring_buffer<T>::resetFrameTimestamp()
 {
     FRAME_ADDRESS_subtype f = frame.load();
-    setCounterCurrentTimestamp(f, 0);
+    setCounterCurrentTimestamp(f, initial_clock);
     frame.store(f);
 }
 #endif

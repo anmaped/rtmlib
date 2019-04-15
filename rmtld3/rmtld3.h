@@ -43,8 +43,6 @@ inline duration mult_dur(const duration& lhs, const duration& rhs){
 #define ASSERT_RMTLD3(l) \
   if(!(l)) ::printf("assert failed.\n")
 
-//#define DEBUG_VERBOSE
-
 #ifndef USE_DEBUGV_RMTLD3
   #define DEBUGV_RMTLD3(...)
 #else
@@ -52,7 +50,12 @@ inline duration mult_dur(const duration& lhs, const duration& rhs){
     ::printf(args)
 #endif
 
-#define DEBUG_RTMLD3(args ...) ::printf(args)
+#ifndef USE_DEBUG_RMTLD3
+#define DEBUG_RTMLD3(...)
+#else
+  #define DEBUG_RTMLD3(args ...) \
+    ::printf(args)
+#endif
 
 #define out_p(res) \
 (res == T_TRUE)? "true" : ((res == T_FALSE)? "false": "unknown")

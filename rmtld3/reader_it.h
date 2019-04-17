@@ -108,6 +108,6 @@ class TraceIterator :  public std::iterator< std::input_iterator_tag, T >
 
     void debug()
     {
-      DEBUGV_RMTLD3("It:%u %u %u %llu %llu %llu. pt:%p\\n", ibegin, iend, it, lower_abstime, upper_abstime, current_abstime, __reader);
+      DEBUGV_RMTLD3("It:%u %u %u %llu %llu %llu. pt:%p\n", ibegin, iend, it, lower_abstime, upper_abstime, current_abstime, __reader);
     }
 };

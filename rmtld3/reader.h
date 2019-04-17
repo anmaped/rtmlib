@@ -35,7 +35,7 @@ class RMTLD3_reader : public RTML_reader<T>
 
       aligned_time = iterator.getReader()->getTimeAlignment(current_time);
 
-      DEBUGV_RMTLD3("    ENTER_search_index: c_t:%llu c_idx:%u\\n", current_time, current_idx);
+      DEBUGV_RMTLD3("    ENTER_search_index: c_t:%llu c_idx:%u\n", current_time, current_idx);
 
       /* create an iterator where its end is the endpoint of the buffer
        * and process the iteration until the timespanw t is found. After
@@ -81,12 +81,12 @@ class RMTLD3_reader : public RTML_reader<T>
           }
       );
 
-      //::printf(\"aligned_time:%llu found_time:%llu init_value(%llu)\\n\", aligned_time, std::get<0>(event_find_tuple), tmp_it.getCurrentAbsoluteTime());
+      //::printf(\"aligned_time:%llu found_time:%llu init_value(%llu)\n\", aligned_time, std::get<0>(event_find_tuple), tmp_it.getCurrentAbsoluteTime());
 
       // assert if there is no event found then timestamps should be equal
       ASSERT_RMTLD3( (std::get<3>(event_find_tuple)) || (aligned_time == std::get<0>(event_find_tuple)) );
 
-      DEBUGV_RMTLD3("    EXIT_searchindex: find(%d) time(%llu) t=%llu idx(%d)\\n", std::get<3>(event_find_tuple), std::get<0>(event_find_tuple), t, std::get<2>(event_find_tuple));
+      DEBUGV_RMTLD3("    EXIT_searchindex: find(%d) time(%llu) t=%llu idx(%d)\n", std::get<3>(event_find_tuple), std::get<0>(event_find_tuple), t, std::get<2>(event_find_tuple));
 
       
 
@@ -118,28 +118,28 @@ class RMTLD3_reader : public RTML_reader<T>
         if ( current_time > formula_t_upper_bound )
         {
           // the bound is violated here; raise error message
-          DEBUGV_RMTLD3("monitor overloads with %llu > %llu\\n", current_time, formula_t_upper_bound);
+          DEBUGV_RMTLD3("monitor overloads with %llu > %llu\n", current_time, formula_t_upper_bound);
           return T_FALSE;
         }
         else
         {
-          //DEBUGV_RMTLD3(\"    Unknown\\n\");
+          //DEBUGV_RMTLD3(\"    Unknown\n\");
           return T_UNKNOWN;
         }
       }
       
       proposition new_p = std::get<1>(event_tuple).getData();
 
-      DEBUGV_RMTLD3("end searchOForward\\n");
+      DEBUGV_RMTLD3("  end searchOForward\n");
 
       if(new_p == p)
       {
-        //DEBUGV_RMTLD3(\"    True\\n\");
+        //DEBUGV_RMTLD3(\"    True\n\");
         return T_TRUE;
       }
       else
       {
-        //DEBUGV_RMTLD3(\"    False\\n\");
+        //DEBUGV_RMTLD3(\"    False\n\");
         return T_FALSE;
       }
 
@@ -169,7 +169,7 @@ struct Environment {
 template<typename T, typename E>
 auto __observation = []( struct Environment<T,E> &env, proposition p, timespan t) mutable -> three_valued_type
 {
-  DEBUGV_RMTLD3("  eval: %lu prop:%d\\n", t, p);
+  DEBUGV_RMTLD3("  eval: %lu prop:%d\n", t, p);
   return b3_or ( env.trace->searchOForward(env.state, p, t), env.trace->searchOBackward(env.state, p, t) );
 };
 

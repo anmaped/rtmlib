@@ -1,6 +1,8 @@
 #ifndef _RMTLD3_H_
 #define _RMTLD3_H_
 
+#include <assert.h>
+
 #include "Event.h"
 #include "time_compat.h"
 
@@ -41,7 +43,7 @@ inline duration mult_dur(const duration& lhs, const duration& rhs){
   ( (std::get<1>(n1) || std::get<1>(n2))? T_UNKNOWN : ( ( std::get<0>(n1) < std::get<0>(n2) )? T_TRUE : T_FALSE ) )
 
 #define ASSERT_RMTLD3(l) \
-  if(!(l)) ::printf("assert failed.\n")
+  assert(l)
 
 #ifndef USE_DEBUGV_RMTLD3
   #define DEBUGV_RMTLD3(...)

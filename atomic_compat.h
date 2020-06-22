@@ -40,7 +40,11 @@
  *
  */
 
-#ifdef ARM_CM4_FP
+#ifdef __HW__
+
+typedef unsigned int uint32_t;
+
+#elif defined (ARM_CM4_FP)
 
 
 	#include <ARMCM4_FP.h>
@@ -70,7 +74,7 @@
 	    std::atomic<uint32_t>
 
 	#define FRAME_ADDRESS_subtype uint32_t
-	
+
 
 	#define ATOMIC_begin_VALUE64(dest) \
 		bool fail = false; \
@@ -84,7 +88,7 @@
 
 	#define ATOMIC_begin_VALUE64_NOEXCHANGE(dest) \
         uint32_t OLD_FRAME_ADDRESS = (uint32_t) std::atomic_load(&dest); \
-        do { 
+        do {
 
 	#define ATOMIC_end_VALUE64_NOEXCHANGE(dest) \
 	} while( !( std::atomic_load(&dest) == OLD_FRAME_ADDRESS ) );
@@ -96,7 +100,7 @@
 
 	#include <atomic>
 
-	#define DMB 
+	#define DMB
 
 	#define FRAME_ADDRESS \
 	    __counter
@@ -122,7 +126,7 @@
 
 	#define ATOMIC_begin_VALUE64_NOEXCHANGE(dest) \
         uint64_t OLD_FRAME_ADDRESS = (uint64_t) std::atomic_load(&dest); \
-        do { 
+        do {
 
 	#define ATOMIC_end_VALUE64_NOEXCHANGE(dest) \
 	} while( !( std::atomic_load(&dest) == OLD_FRAME_ADDRESS ) );

@@ -27,7 +27,15 @@
 
 #include "atomic_compat.h"
 
-#ifdef __NUTTX__
+#ifdef __HW__
+
+typedef long long timeabs;
+typedef long timespan;
+
+
+#define clockgettime() 0
+
+#elif (__NUTTX__)
 #include <nuttx/clock.h>
 
 /* 

@@ -25,12 +25,8 @@
 #ifndef _RTEML_WRITER_H_
 #define _RTEML_WRITER_H_
 
-#ifdef USE_UNSAFE_METHODS
-#include <list>
-#endif
-
 #include "Event.h"
-#include "Ring_buffer.h"
+#include "RTML_buffer.h"
 
 /**
  * Writes events to a Ring_buffer.
@@ -40,7 +36,7 @@
  * @author André Pedro
  * @date
  */
-template<typename T>
+template<typename T, size_t N>
 class RTML_writer {
 private:
     /**
@@ -48,15 +44,7 @@ private:
      *
      * @see Ring_buffer
      */
-    Ring_buffer<T> *const buffer;
-
-    /*
-     * Reference to the local page frame. Each writer will provide a proper
-     * frame to be swaped with the global frame.
-     */
-    typedef Ring_buffer<T> cb;
-    typename cb::tm_page page;
-    typename cb::tm_page &page_ref = page;
+	const RTML_buffer<T,N>& buffer;
 
 public:
 
@@ -65,7 +53,7 @@ public:
      *
      * @param buffer the Buffer to write to.
      */
-    RTML_writer(Ring_buffer<T> *const buffer);
+    RTML_writer(const RTML_buffer<T,N>& buffer);
 
     /**
     * enqueues an event to the Buffer.
@@ -86,42 +74,22 @@ public:
     *
     * @param buffer the buffer to configure this EventReader to.
     */
-    void setBuffer(Ring_buffer<T> *buffer);
+    void setBuffer(const RTML_buffer<T,N>& buffer);
 };
 
-template<typename T>
-RTML_writer<T>::RTML_writer(Ring_buffer<T> *const bbuffer) : buffer(bbuffer), page(0)
+template<typename T, size_t N>
+RTML_writer<T,N>::RTML_writer(const RTML_buffer<T,N>& bbuffer) : buffer(bbuffer)
 {
 
 }
 
-template<typename T>
-void RTML_writer<T>::enqueue(const T &data) {
-    buffer->enqueue(data, page_ref);
+template<typename T, size_t N>
+void RTML_writer<T,N>::enqueue(const T &data) {
+    buffer->enqueue(data);
 }
 
-#ifdef USE_UNSAFE_METHODS
-template<typename T>
-void RTML_writer<T>::unsafe_enqueue(const size_t &index, const T &data, const timespan &t) {
-    // copy the element (data,t) to the buffer position index
-    buffer->writeEvent(data, t, index);
-}
-
-template<typename T>
-void RTML_writer<T>::unsafe_enqueue_n(const std::list<std::pair<T,timespan>> &lst) {
-    buffer->resetFrameCounter();
-    buffer->resetFrameTimestamp();
-    // check if there is space left
-    if ( ! ( buffer->getLength() >= lst.size() ) )
-        DEBUGV3("unsafe_enqueue_n is out of range\n");
-    // copy all elements from the list into the buffer
-    for (auto it = lst.begin(); it != lst.end(); it++)
-        buffer->writeEvent((*it).first, (*it).second, buffer->counterToIndex(buffer->getCounterId()));
-}
-#endif
-
-template<typename T>
-void RTML_writer<T>::setBuffer(Ring_buffer<T> * const _buffer) {
+template<typename T, size_t N>
+void RTML_writer<T,N>::setBuffer(const RTML_buffer<T,N>& _buffer) {
     buffer = _buffer;
 }
 

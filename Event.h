@@ -23,6 +23,8 @@ private:
     timespan time;
 
 public:
+    typedef T data_t;
+
     /**
      * Instantiates a new event.
      *

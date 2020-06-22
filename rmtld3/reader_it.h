@@ -1,14 +1,14 @@
 
 #include "RTML_reader.h"
 
-// defines an interator for a trace
-template<typename T, typename E>
-class TraceIterator :  public std::iterator< std::input_iterator_tag, T >
+// defines an iterator for a trace
+template<typename R>
+class TraceIterator :  public std::iterator< std::input_iterator_tag, typename R::buffer_t::event_t::data_t >
 {
   /*
-   * Lets define the reader for communication with the rtemlib
+   * Lets define the reader for communication with the rtmlib
    */
-  RTML_reader<T> * __reader;
+  R& __reader;
 
   size_t ibegin, iend, it;
 
@@ -28,15 +28,16 @@ class TraceIterator :  public std::iterator< std::input_iterator_tag, T >
   void setCurrentAbsTime(timespanw curr_t) { current_abstime = curr_t; }
 
   public:
-    TraceIterator<T,E> (RTML_reader<T> * _l_reader,
+    TraceIterator<R> (R& _l_reader,
       size_t i, size_t e, size_t iter,
       timespanw t_l, timespanw t_u, timespanw ct) :
       __reader(_l_reader),
       ibegin(i), iend(e), it(iter),
-      lower_abstime(t_l), upper_abstime(t_u), current_abstime(ct)
+      lower_abstime(t_l), upper_abstime(t_u), current_abstime(ct),
+	  enough(false)
     {};
 
-    RTML_reader<T> * getReader() { return __reader; }
+    R& getReader() { return __reader; }
 
     size_t getBegin() { return ibegin; }
     size_t getIt() { return it; }
@@ -46,8 +47,8 @@ class TraceIterator :  public std::iterator< std::input_iterator_tag, T >
     timespanw getUpperAbsoluteTime() { return upper_abstime; }
     timespanw getCurrentAbsoluteTime() { return current_abstime; }
 
-    void setBound(std::tuple<timespanw, E, size_t, bool> lb,
-      std::tuple<timespanw, E, size_t, bool> ub) {
+    void setBound(std::tuple<timespanw, typename R::buffer_t::event_t, size_t, bool> lb,
+      std::tuple<timespanw, typename R::buffer_t::event_t, size_t, bool> ub) {
 
       auto lb_absolute_idx = std::get<2>(lb);
       auto ub_absolute_idx = std::get<2>(ub) + 1;
@@ -70,19 +71,19 @@ class TraceIterator :  public std::iterator< std::input_iterator_tag, T >
       debug();
     }
 
-    TraceIterator<T,E> begin() {
-      return TraceIterator<T,E> (
+    TraceIterator<R> begin() {
+      return TraceIterator<R> (
         __reader,
         ibegin, iend, ibegin, lower_abstime, lower_abstime, upper_abstime );
     }
 
-    TraceIterator<T,E> end() {
-      return TraceIterator<T,E> (
+    TraceIterator<R> end() {
+      return TraceIterator<R> (
         __reader,
         ibegin, iend, iend, upper_abstime, lower_abstime, upper_abstime);
     }
 
-    TraceIterator<T,E>& operator++() {
+    TraceIterator<R>& operator++() {
       ++ it;
 
       // update absolute current time of the event
@@ -91,17 +92,17 @@ class TraceIterator :  public std::iterator< std::input_iterator_tag, T >
       return *this;
     } // [CONFIRM]
 
-    bool operator==(const TraceIterator<T,E>& rhs) { return it == rhs.it; } // [CONFIRM]
-    bool operator!=(const TraceIterator<T,E>& rhs) { return !(operator==(rhs)); } // [CONFIRM]
+    bool operator==(const TraceIterator<R>& rhs) { return it == rhs.it; } // [CONFIRM]
+    bool operator!=(const TraceIterator<R>& rhs) { return !(operator==(rhs)); } // [CONFIRM]
 
-    Event<T> operator*() {
+    typename R::buffer_t::event_t operator*() {
 
       // here we could adopt a small buffer to avoid successive call of dequeues (for instance a local buffer of 10 elements)
       // dequeue the event of the it index
 
-      auto ev_it = it % __reader->getHigherIdx();
+      auto ev_it = it % __reader.getHigherIdx();
 
-      std::pair<state_rd_t,Event<T> > x = __reader->dequeue(ev_it);
+      std::pair<state_rd_t, typename R::buffer_t::event_t > x = __reader.dequeue(ev_it);
 
       return x.second;
     } // [CONFIRM]

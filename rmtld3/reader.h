@@ -7,8 +7,8 @@
 #include "rmtld3.h"
 #include "reader_it.h"
 
-template<typename T, typename E>
-class RMTLD3_reader : public RTML_reader<T>
+template<typename R>
+class RMTLD3_reader : public R
 {
   // current buffer state (idx and cnt)
   int state_cnt;
@@ -17,23 +17,23 @@ class RMTLD3_reader : public RTML_reader<T>
   timespanw formula_t_upper_bound;
 
   public:
-    RMTLD3_reader(Ring_buffer<T> * const buffer, timespan ub) :
-      RTML_reader<T>(buffer),
+    RMTLD3_reader(const typename R::buffer_t& _buffer, timespan ub) :
+      R(_buffer),
       formula_t_upper_bound(ub)
     {};
 
     /** match timestamp and return the index using forward direction (iterator++) */
-    std::tuple<timespanw, E, size_t, bool> searchIndexForwardUntil(TraceIterator<T,E> &iterator, timespanw t) {
+    std::tuple<timespanw, typename R::buffer_t::event_t, size_t, bool> searchIndexForwardUntil(TraceIterator<R> &iterator, timespanw t) {
 
       timeabs current_time;
       timespanw aligned_time;
       size_t current_idx;
 
-      std::pair<timeabs, size_t> pair_state =  iterator.getReader()->getCurrentBufferState();
+      std::pair<timeabs, size_t> pair_state =  iterator.getReader().getCurrentBufferState();
       current_time = pair_state.first;
       current_idx = pair_state.second;
 
-      aligned_time = iterator.getReader()->getTimeAlignment(current_time);
+      aligned_time = iterator.getReader().getTimeAlignment(current_time);
 
       DEBUGV_RMTLD3("    ENTER_search_index: c_t:%llu c_idx:%u\n", current_time, current_idx);
 
@@ -41,7 +41,7 @@ class RMTLD3_reader : public RTML_reader<T>
        * and process the iteration until the timespanw t is found. After
        * that return the index and other data where t holds.
        */
-      TraceIterator<T,E> tmp_it = TraceIterator<T,E>(
+      TraceIterator<R> tmp_it = TraceIterator<R>(
         iterator.getReader(),
         iterator.getIt(),                  // lower bound for index
         current_idx,                       // upper bound for index
@@ -63,8 +63,8 @@ class RMTLD3_reader : public RTML_reader<T>
       auto event_find_tuple = std::accumulate(
         tmp_it.begin(),
         tmp_it.end(),
-        std::make_tuple ( tmp_it.getCurrentAbsoluteTime(), E(), tmp_it.getIt(), false ),
-          [t]( const std::tuple<timespanw, E, size_t, bool> a, E e )
+        std::make_tuple ( tmp_it.getCurrentAbsoluteTime(), typename R::buffer_t::event_t(), tmp_it.getIt(), false ),
+          [t]( const std::tuple<timespanw, typename R::buffer_t::event_t, size_t, bool> a, typename R::buffer_t::event_t e )
           {
             timespanw time_lowerbound = std::get<0>(a);
             timespanw time_upperbound = time_lowerbound + e.getTime();
@@ -84,7 +84,7 @@ class RMTLD3_reader : public RTML_reader<T>
       //::printf(\"aligned_time:%llu found_time:%llu init_value(%llu)\n\", aligned_time, std::get<0>(event_find_tuple), tmp_it.getCurrentAbsoluteTime());
 
       // assert if there is no event found then timestamps should be equal
-      ASSERT_RMTLD3( (std::get<3>(event_find_tuple)) || (aligned_time == std::get<0>(event_find_tuple)) );
+      //ASSERT_RMTLD3( (std::get<3>(event_find_tuple)) || (aligned_time == std::get<0>(event_find_tuple)) );
 
       DEBUGV_RMTLD3("    EXIT_searchindex: find(%d) time(%llu) t=%llu idx(%d)\n", std::get<3>(event_find_tuple), std::get<0>(event_find_tuple), t, std::get<2>(event_find_tuple));
 
@@ -98,7 +98,7 @@ class RMTLD3_reader : public RTML_reader<T>
 
       // construct iterator based on the state [TODO]
       // use env.state to speedup the calculation of the new bounds
-      TraceIterator<T,E> it = TraceIterator<T,E> (this, state.first, 0, state.first, state.second, 0, state.second );
+      TraceIterator<R> it = TraceIterator<R> (*this, state.first, 0, state.first, state.second, 0, state.second );
 
       DEBUGV_RMTLD3("  searchOForward: ");
       //it.debug();
@@ -149,29 +149,30 @@ class RMTLD3_reader : public RTML_reader<T>
 
 };
 
-template<typename T, typename E>
 struct Environment {
   std::pair <size_t, timespanw> state;
-  RMTLD3_reader< T, E > * const trace;
-  three_valued_type (*const evaluate)(struct Environment<T,E> &, proposition, timespan);
+  RMTLD3_reader< RTML_reader< RTML_buffer <int, 100> > >& trace;
+  three_valued_type evaluate(struct Environment &env, proposition p, timespan t) {
 
-  Environment<T,E>(
+	  DEBUGV_RMTLD3("  eval: %lu prop:%d\n", t, p);
+	    return b3_or ( env.trace.searchOForward(env.state, p, t), env.trace.searchOBackward(env.state, p, t) );
+
+  };
+
+  Environment(
     std::pair <size_t, timespanw> st,
-    RMTLD3_reader< T, E > * const t,
-    three_valued_type (*const ev)(struct Environment<T,E> &, proposition, timespan)
+	RMTLD3_reader< RTML_reader< RTML_buffer <int, 100> > >& t
   ) :
     state(st),
-    trace(t),
-    evaluate(ev) {};
+    trace(t) {};
 };
 
 // obs lambda function
-template<typename T, typename E>
-auto __observation = []( struct Environment<T,E> &env, proposition p, timespan t) mutable -> three_valued_type
+
+/*auto __observation = []( struct Environment &env, proposition p, timespan t) mutable -> three_valued_type
 {
-  DEBUGV_RMTLD3("  eval: %lu prop:%d\n", t, p);
-  return b3_or ( env.trace->searchOForward(env.state, p, t), env.trace->searchOBackward(env.state, p, t) );
-};
+
+};*/
 
 
 #endif //_RMTLD3_READER_H_

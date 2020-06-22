@@ -1,10 +1,7 @@
 /*
  *  rtmlib is a Real-Time Monitoring Library.
- *  This library was initially developed in CISTER Research Centre as a proof
- *  of concept by the current developer and, since then it has been freely
- *  maintained and improved by the original developer.
  *
- *    Copyright (C) 2018 André Pedro
+ *    Copyright (C) 2020 André Pedro
  *
  *  This file is part of rtmlib.
  *
@@ -26,17 +23,15 @@
 #define _RTML_BUFFER_H_
 
 #include <stdio.h>
-#include <time.h>
+//#include <time.h>
 
-#include "Ring_buffer.h"
-#include "RTML_writer.h"
-#include "RTML_reader.h"
+#include "Event.h"
+#include "debug_compat.h"
 
 /**
- * RTML_buffer is able to support applications and monitors that requires to
- * share the same buffer by splinting operations to read and write, e.g.
- * the monitor uses the RTML_reader, and the RTML_writer can be used for
- * instrumentation.
+ * RTML_buffer implements a circular buffer. This buffer is the support
+ * for RTML_reader and RTML_writer classes. For instance, The monitor uses
+ * an instance of RTML_reader and SUO uses RTML_writer.
  *
  * @see Event
  * @see RTML_reader
@@ -49,20 +44,22 @@ template<typename T, size_t N>
 class RTML_buffer {
 private:
     /**
-     * The Event array where events are kept. Size is defined via template
-     * parameter N, avoiding dynamic memory usage.
+     * The Event buffer where events are kept. Size is defined via template
+     * parameter N which avoids dynamic memory usage.
      *
      * @see Event
      */
-    typedef Ring_buffer<T> cb;
-    typename cb::node array[N];
+    Event<T> array[N];
 
     /**
-     * The infinite buffer that is used for readers and writers of the RTEML.
      *
-     * @see Ring_buffer
      */
-    Ring_buffer<T> buffer;
+    size_t size;
+
+    /*
+     * Absolute time epoch.
+     */
+    const timespanw time;
 
     /**
      * The writer flag that indicates if a writer has been attached.
@@ -70,19 +67,39 @@ private:
     bool writer;
 
 public:
+    typedef Event<T> event_t;
+
     /**
      * Instantiates a new RTML_buffer.
      */
     RTML_buffer();
 
     /**
+     * Push a node
+     */
+    bool push(Event<T>&) ;
+
+	/**
+	 * Pull node in FIFO order
+	 */
+	bool pop(Event<T>&) ;
+
+    /**
+     * Get node at index
+     */
+	bool read(Event<T>&, size_t&) const;
+
+    /**
      * Gets the static length of the buffer.
      *
      * @return the template parameter N.
      */
-    size_t getLength() const;
+    size_t length() const;
 
-    Ring_buffer<T> * getBuffer() const;
+    /**
+     *
+     */
+    timespanw timespan() const { return time; };
 
     /**
      * Debugs the buffer into the stdout
@@ -92,21 +109,37 @@ public:
 
 template<typename T, size_t N>
 RTML_buffer<T, N>::RTML_buffer() :
+    size(0),
     array(),
-    buffer(array, N),
-    writer(false)
+    writer(false),
+	time(0)
 {
 
 }
 
 template<typename T, size_t N>
-size_t RTML_buffer<T, N>::getLength() const {
-    return N;
+bool RTML_buffer<T, N>::push(Event<T>& node) {
+  array[size++] = node;
 }
 
 template<typename T, size_t N>
-Ring_buffer<T> * RTML_buffer<T, N>::getBuffer() const {
-    return (Ring_buffer<T> *)&buffer;
+bool RTML_buffer<T, N>::pop(Event<T>& event) {
+  if (size > 0)
+    event = array[--size];
+
+  return size > 0 ? true : false;
+}
+
+template<typename T, size_t N>
+bool RTML_buffer<T, N>::read(Event<T>& event, size_t& index) const {
+  event = array[index];
+
+  return index < N ? true : false;
+}
+
+template<typename T, size_t N>
+size_t RTML_buffer<T, N>::length() const {
+    return size;
 }
 
 template<typename T, size_t N>

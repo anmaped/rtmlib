@@ -6,6 +6,7 @@
 
 #include <RTML_buffer.h>
 #include <RTML_reader.h>
+#include <RTML_writer.h>
 
 int rtmlib_reader_and_writer() {
 
@@ -15,7 +16,16 @@ int rtmlib_reader_and_writer() {
   RTML_reader<RTML_buffer<int, 100>> reader =
       RTML_reader<RTML_buffer<int, 100>>(buf);
 
-  // fill and overload +11
+  RTML_writer<RTML_buffer<int, 100>> writer =
+      RTML_writer<RTML_buffer<int, 100>>(buf);
+
+  Event<int> node0 = Event<int>();
+
+  assert(reader.pull(node0) == reader.UNAVAILABLE);
+
+  assert(reader.pop(node0) == reader.UNAVAILABLE);
+
+  // directly fill and overload to buffer (+11 overload)
   Event<int> nodex = Event<int>();
   long int i;
   for (i = 0; i < 111; i++) {
@@ -27,13 +37,26 @@ int rtmlib_reader_and_writer() {
       assert(buf.push(nodex) == buf.OK);
   }
 
+  Event<int> node1 = Event<int>();
+
+  assert(reader.pull(node1) == reader.OVERFLOW);
+
+  assert(reader.pop(node1) == reader.OVERFLOW);
+
   assert(reader.gap() == true);
 
-  Event<int> node0 = Event<int>();
-  reader.pull(node0);
-  reader.pull(node0);
+  assert(reader.synchronize() == true);
 
-  // reader
+  assert(reader.gap() == false);
+
+  // now introduce some events with the writer
+  Event<int> nodey = Event<int>();
+  long int j;
+  for (j = 0; j < 111; j++) {
+    nodey.set(ID, j);
+
+    assert(writer.push(nodey) == buf.OVERFLOW);
+  }
 
   printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);
 

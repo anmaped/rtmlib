@@ -30,8 +30,6 @@
 #include "Event.h"
 #include "RTML_buffer.h"
 
-enum state_rd_t { AVAILABLE, AVAILABLE_PARTIALLY, UNAVAILABLE, OVERWRITTEN };
-
 /**
  * Reader to support local RTML_buffer management.
  *
@@ -63,37 +61,45 @@ private:
 public:
   typedef B buffer_t;
 
-  typedef enum { AVAILABLE = 0, UNAVAILABLE, OVERFLOW } error_t;
+  typedef enum { AVAILABLE = 0, UNAVAILABLE, OVERFLOW, BUFFER_READ } error_t;
 
   /**
-   * Instantiates a new RTML_reader.
+   * Constructs a new RTML_reader.
    *
-   * Instantiates a new event reader that reads from buffer.
+   * Construct the new event reader that reads and manage events from a buffer.
    *
-   * @param buffer a constant pointer that points to a constant buffer.
+   * @param buffer a constant pointer that points to the buffer.
    */
   RTML_reader(const B &);
 
   /**
    * Pull event from the buffer.
    *
-   * @return a pair
+   * @return an errot_t
    *
    */
   error_t pull(typename B::event_t &);
 
   /**
+   * Pop event from the buffer.
+   *
+   * @return an errot_t
+   *
+   */
+  error_t pop(typename B::event_t &);
+
+  /**
    * Synchronizes the RTML_reader with the buffer
    *
-   * @return true if the RTML_reader was synchronized, false otherwise.
+   * @return true if the RTML_reader have been synchronized, false otherwise.
    */
   bool synchronize();
 
   /**
-   * Compares the current RTML_reader absolute timestamp with the
-   * current absolute timestamp of the buffer.
+   * Detects a gap. It compares the current RTML_reader absolute timestamp with
+   * the current absolute timestamp of the buffer.
    *
-   * @return true if synchronized, false otherwise.
+   * @return true if there is a gap in the buffer, false otherwise.
    */
   bool gap() const;
 
@@ -116,7 +122,7 @@ RTML_reader<B>::pull(typename B::event_t &event) {
   if (length() > 0) {
     // read in an atomic way
     if (buffer.read(event, bottom) != buffer.OK)
-      return UNAVAILABLE;
+      return BUFFER_READ;
 
     // update local bottom
     bottom = (size_t)(bottom + 1) % (buffer.size + 0);
@@ -127,7 +133,28 @@ RTML_reader<B>::pull(typename B::event_t &event) {
   if (gap())
     return OVERFLOW;
   else
-    return AVAILABLE;
+    return (length() > 0) ? AVAILABLE : UNAVAILABLE;
+}
+
+template <typename B>
+typename RTML_reader<B>::error_t
+RTML_reader<B>::pop(typename B::event_t &event) {
+
+  if (length() > 0) {
+    if (top - 1 > 0)
+      buffer.read(event, --top);
+    else if (top - 1 <= 0) {
+      top = buffer.size;
+      buffer.read(event, top);
+    }
+  }
+
+  DEBUGV3("pop-> %d (%d,%d)\n", length(), bottom, top);
+
+  if (gap())
+    return OVERFLOW;
+  else
+    return (length() > 0) ? AVAILABLE : UNAVAILABLE;
 }
 
 template <typename B> bool RTML_reader<B>::synchronize() {

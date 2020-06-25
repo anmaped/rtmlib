@@ -1,10 +1,7 @@
 /*
  *  rtmlib is a Real-Time Monitoring Library.
- *  This library was initially developed in CISTER Research Centre as a proof
- *  of concept by the current developer and, since then it has been freely
- *  maintained and improved by the original developer.
  *
- *    Copyright (C) 2018 André Pedro
+ *    Copyright (C) 2020 André Pedro
  *
  *  This file is part of rtmlib.
  *
@@ -29,14 +26,14 @@
 #include "RTML_buffer.h"
 
 /**
- * Writes events to a Ring_buffer.
+ * Writes events to a RTML_buffer.
  *
- * @see Ring_buffer
+ * @see RTML_buffer
  *
  * @author André Pedro
  * @date
  */
-template<typename T, size_t N>
+template<typename B>
 class RTML_writer {
 private:
     /**
@@ -44,7 +41,7 @@ private:
      *
      * @see Ring_buffer
      */
-	const RTML_buffer<T,N>& buffer;
+	B& buffer;
 
 public:
 
@@ -53,44 +50,28 @@ public:
      *
      * @param buffer the Buffer to write to.
      */
-    RTML_writer(const RTML_buffer<T,N>& buffer);
+    RTML_writer(B& buffer);
 
     /**
     * enqueues an event to the Buffer.
     *
     * @param data a constant reference to the data to be pushed.
     */
-    void enqueue(const T &data);
+    typename B::error_t push(const typename B::event_t&);
 
-#ifdef USE_UNSAFE_METHODS
-    void unsafe_enqueue(const size_t &index, const T &data, const timespan &t);
-    void unsafe_enqueue_n(const std::list<std::pair<T,timespan>> &lst);
-#endif
-
-    /**
-    * Sets this RTML_writer Buffer.
-    *
-    * Called during RTML_writer configuration by the RTML_buffer.
-    *
-    * @param buffer the buffer to configure this EventReader to.
-    */
-    void setBuffer(const RTML_buffer<T,N>& buffer);
 };
 
-template<typename T, size_t N>
-RTML_writer<T,N>::RTML_writer(const RTML_buffer<T,N>& bbuffer) : buffer(bbuffer)
+template<typename B>
+RTML_writer<B>::RTML_writer(B& _buffer) : buffer(_buffer)
 {
 
 }
 
-template<typename T, size_t N>
-void RTML_writer<T,N>::enqueue(const T &data) {
-    buffer->enqueue(data);
-}
+template<typename B>
+typename B::error_t RTML_writer<B>::push(const typename B::event_t& event) {
+	typename B::error_t e = buffer.push(event);
 
-template<typename T, size_t N>
-void RTML_writer<T,N>::setBuffer(const RTML_buffer<T,N>& _buffer) {
-    buffer = _buffer;
+    return e;
 }
 
 #endif //_RTEML_WRITER_H_

@@ -72,7 +72,7 @@ int rtmlib_buffer_push_and_pop() {
   }() == 99);
 
   for (i = 0; i < 110; i++) {
-    if (i >= 98)
+    if (i >= 100)
       assert(buf.pop(nodex) == buf.EMPTY);
     else
       assert(buf.pop(nodex) == buf.OK);

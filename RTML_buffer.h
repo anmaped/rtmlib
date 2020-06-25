@@ -86,7 +86,7 @@ private:
    * Increment bottom of the buffer (-- is just a mnemonic)
    */
   size_t &operator--() {
-    bottom = (size_t)(bottom + 1) % (N + 0);
+    bottom = (size_t)(bottom + 1) % (N + 1);
     return bottom;
   };
 
@@ -114,22 +114,22 @@ public:
   /**
    * Push a node
    */
-  error_t push(Event<T> &);
+  error_t push(const event_t &);
 
   /**
    * Pull a node in FIFO order
    */
-  error_t pull(Event<T> &);
+  error_t pull(event_t &);
 
   /**
    * Pop event
    */
-  error_t pop(Event<T> &);
+  error_t pop(event_t &);
 
   /**
    * Get node at index
    */
-  error_t read(Event<T> &, size_t) const;
+  error_t read(event_t &, size_t) const;
 
   /**
    *
@@ -153,47 +153,53 @@ template <typename T, size_t N>
 RTML_buffer<T, N>::RTML_buffer() : top(0), bottom(0), array(), writer(false) {}
 
 template <typename T, size_t N>
-typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::push(Event<T> &node) {
+typename RTML_buffer<T, N>::error_t
+RTML_buffer<T, N>::push(const Event<T> &node) {
 
   array[top] = node;
 
   ++(*this);
 
   bool p = top == bottom;
+
   if (p)
     --(*this); // discard one element; the buffer is under a gap
 
-  DEBUGV3("push-> %d (%d,%d)\n", length(), bottom, top);
+  DEBUGV3("push-> %d (%d,%d) r:%d\n", length(), bottom, top, p);
 
   return (p) ? OVERFLOW : OK;
 }
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pull(Event<T> &event) {
-  if (length() > 0) {
+  bool c = length() > 0;
+  if (c) {
     event = array[bottom];
     --(*this);
   }
 
-  DEBUGV3("pull-> %d (%d,%d)\n", length(), bottom, top);
+  DEBUGV3("pull-> %d (%d,%d) r:%d e:%d\n", length(), bottom, top, c,
+          event.getTime());
 
-  return length() > 0 ? OK : EMPTY;
+  return c ? OK : EMPTY;
 }
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(Event<T> &event) {
-  if (length() > 0) {
-    if (top - 1 > 0)
+  bool c = length() > 0;
+  if (c) {
+    if (((int)top) - 1 >= 0) {
       event = array[--top];
-    else if (top - 1 <= 0) {
+    } else {
       top = N;
       event = array[top];
     }
   }
 
-  DEBUGV3("pop-> %d (%d,%d)\n", length(), bottom, top);
+  DEBUGV3("pop-> %d (%d,%d) r:%d e:%d\n", length(), bottom, top, c,
+          event.getTime());
 
-  return length() > 0 ? OK : EMPTY;
+  return c ? OK : EMPTY;
 }
 
 template <typename T, size_t N>
@@ -205,8 +211,8 @@ RTML_buffer<T, N>::read(Event<T> &event, size_t index) const {
 }
 
 template <typename T, size_t N>
-typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::state(size_t &b, size_t &t,
-                                                    timespanw &ts) const {
+typename RTML_buffer<T, N>::error_t
+RTML_buffer<T, N>::state(size_t &b, size_t &t, timespanw &ts) const {
   b = bottom;
   t = top;
   ts = array[bottom].getTime();

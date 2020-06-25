@@ -60,11 +60,6 @@ private:
    */
   size_t bottom;
 
-  /*
-   * Absolute time epoch.
-   */
-  const timespanw time;
-
   /**
    * The writer flag that indicates if a writer has been attached.
    */
@@ -105,6 +100,8 @@ private:
   };
 
 public:
+  const size_t size = N;
+
   typedef Event<T> event_t;
 
   typedef enum { OK = 0, EMPTY, OVERFLOW, OUT_OF_BOUND } error_t;
@@ -135,6 +132,11 @@ public:
   error_t read(Event<T> &, size_t) const;
 
   /**
+   *
+   */
+  error_t state(size_t &, size_t &, timespanw &) const;
+
+  /**
    * Get buffer length
    *
    * @return the template parameter N.
@@ -142,19 +144,13 @@ public:
   size_t length() const;
 
   /**
-   *
-   */
-  timespanw timespan() const { return time; };
-
-  /**
-   * Debugs the buffer into the stdout
+   * Print buffer into the stdout
    */
   void debug() const;
 };
 
 template <typename T, size_t N>
-RTML_buffer<T, N>::RTML_buffer()
-    : top(0), bottom(0), array(), writer(false), time(0) {}
+RTML_buffer<T, N>::RTML_buffer() : top(0), bottom(0), array(), writer(false) {}
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::push(Event<T> &node) {
@@ -205,7 +201,17 @@ typename RTML_buffer<T, N>::error_t
 RTML_buffer<T, N>::read(Event<T> &event, size_t index) const {
   event = array[index];
 
-  return index < N + 1 ? OK : OUT_OF_BOUND;
+  return index < N + 1 ? ((length() > 0) ? OK : EMPTY) : OUT_OF_BOUND;
+}
+
+template <typename T, size_t N>
+typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::state(size_t &b, size_t &t,
+                                                    timespanw &ts) const {
+  b = bottom;
+  t = top;
+  ts = array[bottom].getTime();
+
+  return OK;
 }
 
 template <typename T, size_t N> size_t RTML_buffer<T, N>::length() const {

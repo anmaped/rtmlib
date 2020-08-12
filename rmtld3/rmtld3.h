@@ -3,9 +3,6 @@
 
 #include <assert.h>
 
-#include "Event.h"
-//#include "time_compat.h"
-
 typedef unsigned int proposition;
 typedef float realnumber;
 typedef std::pair<realnumber, bool> duration;

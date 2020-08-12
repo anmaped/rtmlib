@@ -37,8 +37,8 @@
  * @date
  */
 template <typename B> class RTML_reader {
-private:
-  /**  Constant pointer to a ring Buffer this RTML_reader reads from.
+protected:
+  /**  Constant reference to a ring Buffer this RTML_reader reads from.
    * @see RTML_buffer
    */
   const B &buffer;

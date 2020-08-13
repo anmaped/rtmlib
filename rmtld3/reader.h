@@ -26,10 +26,13 @@ public:
    */
   typename R::buffer_t::error_t set(timespan &);
 
-  typename R::buffer_t::error_t read(typename R::buffer_t::event_t &);
+  typename R::error_t pull(typename R::buffer_t::event_t &);
+
+  typename R::error_t read(typename R::buffer_t::event_t &);
+
+  typename R::error_t read_next(typename R::buffer_t::event_t &);
 
   void debug() const;
-
 };
 
 template <typename R> typename R::buffer_t::error_t RMTLD3_reader<R>::reset() {
@@ -40,11 +43,12 @@ template <typename R> typename R::buffer_t::error_t RMTLD3_reader<R>::reset() {
   return R::buffer_t::OK;
 }
 
-template <typename R> typename R::buffer_t::error_t RMTLD3_reader<R>::set(timespan &t) {
+template <typename R>
+typename R::buffer_t::error_t RMTLD3_reader<R>::set(timespan &t) {
 
-  //typename R::event_t previous_event, next_event;
-  //R::buffer.prev(previous_event);
-  //R::buffer.next(next_event);
+  // typename R::event_t previous_event, next_event;
+  // R::buffer.prev(previous_event);
+  // R::buffer.next(next_event);
 
   /*while () {
     if (timestamp <= t && previous_event.getTime() <= t &&
@@ -61,26 +65,45 @@ template <typename R> typename R::buffer_t::error_t RMTLD3_reader<R>::set(timesp
   return R::buffer_t::OK;
 }
 
-template <typename R> typename R::buffer_t::error_t RMTLD3_reader<R>::read(typename R::buffer_t::event_t &e) {
+template <typename R>
+typename R::error_t RMTLD3_reader<R>::pull(typename R::buffer_t::event_t &e) {
+
+  // update cursor
+  cursor = (size_t)(cursor + 1) % (R::buffer.size + 0);
+
+  return R::pull(e);
+}
+
+template <typename R>
+typename R::error_t RMTLD3_reader<R>::read(typename R::buffer_t::event_t &e) {
 
   // [TODO]
   // Synchronize cursor with buffer end_point
 
-  return R::buffer.read(e,cursor);
+  return (R::buffer.read(e, cursor) == R::buffer.OK) ? R::AVAILABLE
+                                                     : R::UNAVAILABLE;
+}
 
+template <typename R>
+typename R::error_t
+RMTLD3_reader<R>::read_next(typename R::buffer_t::event_t &e) {
+
+  return (R::buffer.read(e, (size_t)(cursor + 1) % (R::buffer.size + 0))) ==
+                 R::buffer.OK
+             ? R::AVAILABLE
+             : R::UNAVAILABLE;
 }
 
 template <typename R> void RMTLD3_reader<R>::debug() const {
 
-	typename R::buffer_t::event_t e;
-	for(int i=0; i< R::buffer.size; i++)
-	{
-		R::buffer.read(e,i);
-		DEBUGV_RMTLD3("(%d,%d),", e.getData(), e.getTime());
-	}
-	DEBUGV_RMTLD3("\n");
-	DEBUGV_RMTLD3("bottom=%d top=%d timestamp=%d | cursor=%d upper_bound=%d\n", R::bottom, R::top, R::timestamp, cursor, upper_bound);
+  typename R::buffer_t::event_t e;
+  for (int i = 0; i < R::buffer.size; i++) {
+    R::buffer.read(e, i);
+    DEBUGV_RMTLD3("(%d,%d),", e.getData(), e.getTime());
+  }
+  DEBUGV_RMTLD3("\n");
+  DEBUGV_RMTLD3("bottom=%d top=%d timestamp=%d | cursor=%d upper_bound=%d\n",
+                R::bottom, R::top, R::timestamp, cursor, upper_bound);
 }
-
 
 #endif //_RMTLD3_READER_H_

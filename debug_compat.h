@@ -28,11 +28,9 @@
 
 #if defined(__x86__) || defined(__x86_64__)
 #define x86 1
-#else
-#define x86 0
 #endif
 
-#if defined(DEBUG) && DEBUG > 0 && x86
+#if defined(DEBUG) && DEBUG > 0 && defined(x86)
 
 #define DEBUGV_ERROR(fmt, args...)                                             \
   fprintf(stderr, "ERROR: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
@@ -42,7 +40,7 @@
   fprintf(stdout, "DEBUG: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
           ##args)
 
-#if defined(DEBUG) && DEBUG > 2 && x86
+#if defined(DEBUG) && DEBUG > 2 && defined(x86)
 
 #define DEBUGV3(fmt, args...)                                                  \
   fprintf(stdout, "DEBUG: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \

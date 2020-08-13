@@ -27,8 +27,8 @@
 #include <tuple>
 #include <utility>
 
-#include "RTML_event.h"
 #include "RTML_buffer.h"
+#include "RTML_event.h"
 
 /**
  * Reader to support local RTML_buffer management.
@@ -119,6 +119,8 @@ template <typename B>
 typename RTML_reader<B>::error_t
 RTML_reader<B>::pull(typename B::event_t &event) {
 
+  typename B::event_t event_next;
+
   if (length() > 0) {
     // read in an atomic way
     if (buffer.read(event, bottom) != buffer.OK)
@@ -126,6 +128,8 @@ RTML_reader<B>::pull(typename B::event_t &event) {
 
     // update local bottom
     bottom = (size_t)(bottom + 1) % (buffer.size + 0);
+    if (buffer.read(event_next, bottom) == buffer.OK)
+      timestamp = event_next.getTime();
   }
 
   DEBUGV3("pull-> %d (%d,%d)\n", length(), bottom, top);
@@ -167,7 +171,7 @@ template <typename B> bool RTML_reader<B>::synchronize() {
   timespanw ts;
   buffer.state(b, t, ts);
 
-  if (timestamp >= ts) {
+  if (timestamp > ts) {
     // no gaps, but the reader may be further ahead
     return false;
   } else {

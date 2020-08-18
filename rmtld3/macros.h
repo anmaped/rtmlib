@@ -28,7 +28,7 @@
  * Proposition
  */
 template <typename T>
-three_valued_type prop(T &trace, proposition& p, timespan& t) {
+three_valued_type prop(T &trace, proposition &p, timespan &t) {
 
   typename T::buffer_t::event_t e;
   typename T::buffer_t::event_t e_next;
@@ -37,11 +37,11 @@ three_valued_type prop(T &trace, proposition& p, timespan& t) {
 
   if (status == trace.AVAILABLE && trace.read_next(e_next) == trace.AVAILABLE &&
       e.getTime() <= t && t < e_next.getTime()) {
-    DEBUGV_RMTLD3("  eval: t=%lu prop=%d - (%d %d) next-> (%d %d)\n", t, p,
+    DEBUGV_RMTLD3("eval: t=%lu prop=%d - (%d %d) next-> (%d %d)\n", t, p,
                   e.getData(), e.getTime(), e_next.getData(), e_next.getTime());
     return e.getData() == p ? T_TRUE : T_FALSE;
   } else {
-    DEBUGV_RMTLD3("  eval: t=%lu prop=%d - (%d %d) nobound\n", t, p,
+    DEBUGV_RMTLD3("eval: t=%lu prop=%d - (%d %d) nobound\n", t, p,
                   e.getData(), e.getTime());
     return T_UNKNOWN;
   }
@@ -50,7 +50,8 @@ three_valued_type prop(T &trace, proposition& p, timespan& t) {
 /**
  * Until (<)
  */
-template <typename T, typename E> three_valued_type until_less(T &trace, timespan& t) {
+template <typename T, typename E>
+three_valued_type until_less(T &trace, timespan &t) {
   auto eval_fold = [](T &trace,
                       timespan t) -> std::pair<four_valued_type, timespan> {
     // eval_b lambda function
@@ -66,19 +67,21 @@ template <typename T, typename E> three_valued_type until_less(T &trace, timespa
       // change this (trying to get the maximum complexity)
       // if ( v == FV_SYMBOL )
       //{
-      DEBUGV_RMTLD3("  compute phi1\n");
+      DEBUGV_RMTLD3("$compute phi1\n");
       // compute phi1
       three_valued_type cmpphi1 = E::eval_phi1(trace, t);
-      DEBUGV_RMTLD3("  compute phi1 end.\n");
+      trace.set(t); // reset all reads of the subformula
+      DEBUGV_RMTLD3("@compute phi1.\n");
 
-      DEBUGV_RMTLD3("  compute phi2\n");
+      DEBUGV_RMTLD3("$compute phi2\n");
       // compute phi2
       three_valued_type cmpphi2 = E::eval_phi2(trace, t);
-      DEBUGV_RMTLD3("  compute phi2 end.\n");
+      trace.set(t); // reset all reads of the subformula
+      DEBUGV_RMTLD3("@compute phi2.\n");
 
       four_valued_type rs = eval_i(cmpphi1, cmpphi2);
 
-      DEBUGV_RMTLD3(" phi1=%s UNTIL phi2=%s\n", out_p(cmpphi1), out_p(cmpphi2));
+      DEBUGV_RMTLD3("eval_b: phi1=%s phi2=%s\n", out_p(cmpphi1), out_p(cmpphi2));
 
       if (v == FV_SYMBOL) {
         return rs;
@@ -100,8 +103,8 @@ template <typename T, typename E> three_valued_type until_less(T &trace, timespa
     trace.debug();
 
     while (trace.pull(event) == trace.AVAILABLE) {
-    	
-      DEBUGV_RMTLD3("%d len=%d\n", c_time, trace.length());
+
+      DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
 
       trace.read(event);
       c_time = event.getTime();
@@ -117,11 +120,11 @@ template <typename T, typename E> three_valued_type until_less(T &trace, timespa
     return std::make_pair(symbol, c_time);
   };
 
-  DEBUGV_RMTLD3("BEGIN until_op_less.\n ");
+  DEBUGV_RMTLD3("$(+++) until_op_less\n");
 
   std::pair<four_valued_type, timespan> eval_c = eval_fold(trace, t);
 
-  DEBUGV_RMTLD3("END until_op (%s) enough(%d)=%d .\n ", out_fv(eval_c.first),
+  DEBUGV_RMTLD3("@(---) until_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
                 eval_c.second, eval_c.second < t + 10.);
 
   return (eval_c.first == FV_SYMBOL)

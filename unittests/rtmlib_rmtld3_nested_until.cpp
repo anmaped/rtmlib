@@ -59,7 +59,7 @@ int rtmlib_rmtld3_nested_until() {
   timespan t = 2;
   auto _out = _mon0_compute(trace, t);
 
-  if (strcmp(out_p(_out), "false") == 0)
+  if (strcmp(out_p(_out), "true") == 0)
     printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);
   else
     printf("%s \033[0;31mFail.\e[0m\n", __FILE__);

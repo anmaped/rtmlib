@@ -277,7 +277,7 @@ public:
   friend bool operator!=(const timespan &time, const Event<D> &event);
 };
 
-template <typename T> Event<T>::Event() : data(0), time(0) {}
+template <typename T> Event<T>::Event() : data(), time(0) {}
 
 template <typename T>
 Event<T>::Event(const T &ddata, const timespan &ttime)

@@ -53,20 +53,17 @@ three_valued_type prop(T &trace, proposition &p, timespan &t) {
 template <typename T, typename E>
 three_valued_type until_less(T &trace, timespan &t) {
   auto eval_fold = [](T &trace,
-                      timespan t) -> std::pair<four_valued_type, timespan> {
+                      timespan &t) -> std::pair<four_valued_type, timespan> {
     // eval_b lambda function
-    auto eval_b = [](T &trace, timespan t,
-                     four_valued_type v) -> four_valued_type {
+    auto eval_b = [](T &trace, timespan &t,
+                     four_valued_type &v) -> four_valued_type {
       // eval_i lambda function
-      auto eval_i = [](three_valued_type b1,
-                       three_valued_type b2) -> four_valued_type {
+      auto eval_i = [](three_valued_type &b1,
+                       three_valued_type &b2) -> four_valued_type {
         return (b2 != T_FALSE) ? b3_to_b4(b2)
                                : ((b1 != T_TRUE) ? b3_to_b4(b1) : FV_SYMBOL);
       };
 
-      // change this (trying to get the maximum complexity)
-      // if ( v == FV_SYMBOL )
-      //{
       DEBUGV_RMTLD3("$compute phi1\n");
       // compute phi1
       three_valued_type cmpphi1 = E::eval_phi1(trace, t);

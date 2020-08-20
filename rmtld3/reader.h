@@ -4,17 +4,26 @@
 #include <functional>
 #include <numeric>
 
+#include "pattern.h"
 #include "rmtld3.h"
 
-template <typename R> class RMTLD3_reader : public R {
+template <typename R, typename P> class RMTLD3_reader : public R {
 
+  /**
+   * Cursor between bottom and top of the reader
+   */
   size_t cursor;
 
-  timespanw upper_bound;
-
 public:
-  RMTLD3_reader(const typename R::buffer_t &_buffer, timespan ub)
-      : R(_buffer), cursor(0), upper_bound(ub){};
+  /**
+   *  Local memory for dynamic programming pattern
+   */
+  P& lmem;
+
+  /**
+   * Constructor
+   */
+  RMTLD3_reader(const typename R::buffer_t &_buffer, P &_lmem) : R(_buffer), lmem(_lmem), cursor(0){};
 
   /**
    * Resets cursor in the reader
@@ -41,15 +50,15 @@ public:
   void debug() const;
 };
 
-template <typename R> typename R::buffer_t::error_t RMTLD3_reader<R>::reset() {
+template <typename R, typename P> typename R::buffer_t::error_t RMTLD3_reader<R,P>::reset() {
 
   cursor = R::bottom;
 
   return R::buffer_t::OK;
 }
 
-template <typename R>
-typename R::buffer_t::error_t RMTLD3_reader<R>::set(timespan &t) {
+template <typename R, typename P>
+typename R::buffer_t::error_t RMTLD3_reader<R,P>::set(timespan &t) {
 
   typename R::buffer_t::event_t e;
 
@@ -66,8 +75,8 @@ typename R::buffer_t::error_t RMTLD3_reader<R>::set(timespan &t) {
   return R::buffer_t::OK;
 }
 
-template <typename R>
-typename R::error_t RMTLD3_reader<R>::pull(typename R::buffer_t::event_t &e) {
+template <typename R, typename P>
+typename R::error_t RMTLD3_reader<R,P>::pull(typename R::buffer_t::event_t &e) {
 
   typename R::buffer_t::event_t event_next;
 
@@ -85,16 +94,16 @@ typename R::error_t RMTLD3_reader<R>::pull(typename R::buffer_t::event_t &e) {
   return (length() > 0) ? R::AVAILABLE : R::UNAVAILABLE;
 }
 
-template <typename R>
-typename R::error_t RMTLD3_reader<R>::read(typename R::buffer_t::event_t &e) {
+template <typename R, typename P>
+typename R::error_t RMTLD3_reader<R,P>::read(typename R::buffer_t::event_t &e) {
 
   return (R::buffer.read(e, cursor) == R::buffer.OK) ? R::AVAILABLE
                                                      : R::UNAVAILABLE;
 }
 
-template <typename R>
+template <typename R, typename P>
 typename R::error_t
-RMTLD3_reader<R>::read_next(typename R::buffer_t::event_t &e) {
+RMTLD3_reader<R,P>::read_next(typename R::buffer_t::event_t &e) {
 
   return ((length() > 1 &&
            (R::buffer.read(e, (size_t)(cursor + 1) % (R::buffer.size + 0))) ==
@@ -103,9 +112,9 @@ RMTLD3_reader<R>::read_next(typename R::buffer_t::event_t &e) {
              : R::UNAVAILABLE;
 }
 
-template <typename R>
+template <typename R, typename P>
 typename R::error_t
-RMTLD3_reader<R>::read_previous(typename R::buffer_t::event_t &e) {
+RMTLD3_reader<R,P>::read_previous(typename R::buffer_t::event_t &e) {
 
   DEBUGV_RMTLD3("consumed=%d available=%d total=%d\n", consumed(), length(),
                 R::length());
@@ -116,16 +125,16 @@ RMTLD3_reader<R>::read_previous(typename R::buffer_t::event_t &e) {
              : R::UNAVAILABLE;
 }
 
-template <typename R> size_t RMTLD3_reader<R>::length() const {
+template <typename R, typename P> size_t RMTLD3_reader<R,P>::length() const {
   return (R::top >= cursor) ? R::top - cursor
                             : (R::buffer.size + 1) - (cursor - R::top);
 }
 
-template <typename R> size_t RMTLD3_reader<R>::consumed() const {
+template <typename R, typename P> size_t RMTLD3_reader<R,P>::consumed() const {
   return R::length() - length();
 }
 
-template <typename R> void RMTLD3_reader<R>::debug() const {
+template <typename R, typename P> void RMTLD3_reader<R,P>::debug() const {
 
   typename R::buffer_t::event_t e;
   for (int i = 0; i < R::buffer.size; i++) {
@@ -133,8 +142,8 @@ template <typename R> void RMTLD3_reader<R>::debug() const {
     DEBUGV_RMTLD3("(%d,%d),", e.getData(), e.getTime());
   }
   DEBUGV_RMTLD3("\n");
-  DEBUGV_RMTLD3("bottom=%d top=%d timestamp=%d | cursor=%d upper_bound=%d\n",
-                R::bottom, R::top, R::timestamp, cursor, upper_bound);
+  DEBUGV_RMTLD3("bottom=%d top=%d timestamp=%d | cursor=%d \n", R::bottom,
+                R::top, R::timestamp, cursor);
 }
 
 #endif //_RMTLD3_READER_H_

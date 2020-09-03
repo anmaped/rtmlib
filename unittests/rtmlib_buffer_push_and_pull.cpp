@@ -8,7 +8,7 @@
 
 int rtmlib_buffer_push_and_pull() {
 
-  RTML_buffer<int, 100> buf;
+  RTML_buffer<Event<int>, 100> buf;
   int ID = 1;
 
   assert(buf.length() == 0);

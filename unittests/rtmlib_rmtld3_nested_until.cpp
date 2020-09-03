@@ -24,7 +24,7 @@ template <typename T> class Eval_until_less_2 {
 public:
   static three_valued_type eval_phi1(T &trace, timespan& t) { return T_TRUE; };
   static three_valued_type eval_phi2(T &trace, timespan& t) {
-    auto sf = until_less<T, Eval_until_less_1<T>>(trace, t);
+    auto sf = until_less<T, Eval_until_less_1<T>, 10>(trace, t);
     return sf;
   };
 };
@@ -33,8 +33,8 @@ public:
 int rtmlib_rmtld3_nested_until() {
 
   typedef Event<int> event_t;
-  typedef RTML_buffer<int, 100> buffer_t;
-  typedef RMTLD3_reader<RTML_reader<buffer_t>> trace_t;
+  typedef RTML_buffer<event_t, 100> buffer_t;
+  typedef RMTLD3_reader<RTML_reader<buffer_t>,int> trace_t;
 
   buffer_t buf;
   unsigned long int index = 0;
@@ -47,12 +47,13 @@ int rtmlib_rmtld3_nested_until() {
   // check first element of the trace
   { event_t event; buf.read(event, index); assert(event.getTime() == 2 && event.getData() == 1); };
 
-  trace_t trace = trace_t(buf, 0.);
+  int tzero = 0.;
+  trace_t trace = trace_t(buf, tzero);
 
   trace.synchronize();
 
   auto _mon0_compute = [](trace_t &trace, timespan& t) -> three_valued_type {
-    auto sf = until_less<trace_t, Eval_until_less_2<trace_t>>(trace, t);
+    auto sf = until_less<trace_t, Eval_until_less_2<trace_t>, 10>(trace, t);
     return b3_not(sf);
   };
 

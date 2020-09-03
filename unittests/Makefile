@@ -3,7 +3,7 @@ OBJ_DIR := .
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 LDFLAGS := 
-CPPFLAGS := -I../ #-DDEBUG=3
+CPPFLAGS := -std=c++11 -I../ #-DDEBUG=3
 CXXFLAGS := 
 
 SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp' | sed -r "s/.+\/(.+)\..+/\1/")

@@ -10,14 +10,14 @@
 
 int rtmlib_reader_and_writer() {
 
-  RTML_buffer<int, 100> buf;
+  RTML_buffer<Event<int>, 100> buf;
   int ID = 0x01;
 
-  RTML_reader<RTML_buffer<int, 100>> reader =
-      RTML_reader<RTML_buffer<int, 100>>(buf);
+  RTML_reader<RTML_buffer<Event<int>, 100>> reader =
+      RTML_reader<RTML_buffer<Event<int>, 100>>(buf);
 
-  RTML_writer<RTML_buffer<int, 100>> writer =
-      RTML_writer<RTML_buffer<int, 100>>(buf);
+  RTML_writer<RTML_buffer<Event<int>, 100>> writer =
+      RTML_writer<RTML_buffer<Event<int>, 100>>(buf);
 
   Event<int> node0 = Event<int>();
 

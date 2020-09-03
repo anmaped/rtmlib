@@ -43,12 +43,12 @@
 template <typename T, size_t N> class RTML_buffer {
 private:
   /**
-   * The Event buffer where events are kept. Size is defined via template
+   * The T buffer where data is kept. The size is defined via template
    * parameter N which avoids dynamic memory usage.
    *
-   * @see Event
+   * @see T
    */
-  Event<T> array[N + 1];
+  T array[N + 1];
 
   /**
    * The circular buffer contains a top and a bottom
@@ -102,7 +102,7 @@ private:
 public:
   const size_t size = N;
 
-  typedef Event<T> event_t;
+  typedef T event_t;
 
   typedef enum { OK = 0, EMPTY, OVERFLOW, OUT_OF_BOUND } error_t;
 
@@ -150,11 +150,11 @@ public:
 };
 
 template <typename T, size_t N>
-RTML_buffer<T, N>::RTML_buffer() : top(0), bottom(0), array(), writer(false) {}
+RTML_buffer<T, N>::RTML_buffer() : top(0), bottom(0), writer(false) {}
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
-RTML_buffer<T, N>::push(const Event<T> &node) {
+RTML_buffer<T, N>::push(const event_t &node) {
 
   array[top] = node;
 
@@ -171,7 +171,7 @@ RTML_buffer<T, N>::push(const Event<T> &node) {
 }
 
 template <typename T, size_t N>
-typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pull(Event<T> &event) {
+typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pull(event_t &event) {
   bool c = length() > 0;
   if (c) {
     event = array[bottom];
@@ -185,7 +185,7 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pull(Event<T> &event) {
 }
 
 template <typename T, size_t N>
-typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(Event<T> &event) {
+typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(event_t &event) {
   bool c = length() > 0;
   if (c) {
     if (((int)top) - 1 >= 0) {
@@ -204,7 +204,7 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(Event<T> &event) {
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
-RTML_buffer<T, N>::read(Event<T> &event, size_t index) const {
+RTML_buffer<T, N>::read(event_t &event, size_t index) const {
   event = array[index];
 
   return index < N + 1 ? ((length() > 0) ? OK : EMPTY) : OUT_OF_BOUND;

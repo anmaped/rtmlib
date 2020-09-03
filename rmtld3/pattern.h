@@ -26,9 +26,9 @@ template <typename B, size_t N> RMTLD3_Pattern<B, N>::RMTLD3_Pattern() {}
 
 template <typename B, size_t N>
 three_valued_type RMTLD3_Pattern<B, N>::getValue(size_t i, size_t id) {
-  Event<three_valued_type> value;
+  three_valued_type value;
   memory[id].read(value, i);
-  return value.getData();
+  return value;
 }
 
 template <typename B, size_t N> size_t RMTLD3_Pattern<B, N>::mapt(timespan &t) {

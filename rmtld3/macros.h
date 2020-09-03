@@ -41,8 +41,8 @@ three_valued_type prop(T &trace, proposition &p, timespan &t) {
                   e.getData(), e.getTime(), e_next.getData(), e_next.getTime());
     return e.getData() == p ? T_TRUE : T_FALSE;
   } else {
-    DEBUGV_RMTLD3("eval: t=%lu prop=%d - (%d %d) nobound\n", t, p,
-                  e.getData(), e.getTime());
+    DEBUGV_RMTLD3("eval: t=%lu prop=%d - (%d %d) nobound\n", t, p, e.getData(),
+                  e.getTime());
     return T_UNKNOWN;
   }
 }
@@ -50,7 +50,7 @@ three_valued_type prop(T &trace, proposition &p, timespan &t) {
 /**
  * Until (<)
  */
-template <typename T, typename E>
+template <typename T, typename E, timespan b>
 three_valued_type until_less(T &trace, timespan &t) {
   auto eval_fold = [](T &trace,
                       timespan &t) -> std::pair<four_valued_type, timespan> {
@@ -78,7 +78,8 @@ three_valued_type until_less(T &trace, timespan &t) {
 
       four_valued_type rs = eval_i(cmpphi1, cmpphi2);
 
-      DEBUGV_RMTLD3("eval_b: phi1=%s phi2=%s\n", out_p(cmpphi1), out_p(cmpphi2));
+      DEBUGV_RMTLD3("eval_b: phi1=%s phi2=%s\n", out_p(cmpphi1),
+                    out_p(cmpphi2));
 
       if (v == FV_SYMBOL) {
         return rs;
@@ -106,7 +107,7 @@ three_valued_type until_less(T &trace, timespan &t) {
       trace.read(event);
       c_time = event.getTime();
 
-      if (c_time > 10. + t)
+      if (c_time > b + t)
         break;
 
       symbol = eval_b(trace, c_time, symbol);
@@ -122,9 +123,50 @@ three_valued_type until_less(T &trace, timespan &t) {
   std::pair<four_valued_type, timespan> eval_c = eval_fold(trace, t);
 
   DEBUGV_RMTLD3("@(---) until_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
-                eval_c.second, eval_c.second < t + 10.);
+                eval_c.second, eval_c.second < t + b);
 
   return (eval_c.first == FV_SYMBOL)
-             ? ((eval_c.second < t + 10.) ? T_UNKNOWN : T_FALSE)
+             ? ((eval_c.second < t + b) ? T_UNKNOWN : T_FALSE)
              : b4_to_b3(eval_c.first);
+}
+
+/**
+ * Eventually(=)
+ *
+ * pre-processing
+ *
+ * 1) Always (=) is equivalent to Eventually(=) (the evaluation at one point)
+ *
+ */
+template <typename T, typename E, timespan b>
+three_valued_type eventually_equal(T &trace, timespan &t) {
+
+  three_valued_type v_phi = E::eval_phi(trace, t + b);
+  trace.set(t);
+
+  return v_phi;
+}
+
+/**
+ * Eventually (<)
+ */
+template <typename T, typename E, timespan b>
+three_valued_type eventually_less(T &trace, timespan &t) {
+  // [TODO]
+  return T_TRUE;
+}
+
+/**
+ * Always (<)
+ *
+ * pre-processing
+ *
+ * 1) Until (=) is the same as A Until (=a) B <-> Always(<a) A and
+ * Eventually(=a) B
+ *
+ */
+template <typename T, typename E, timespan b>
+three_valued_type always_less(T &trace, timespan &t) {
+  // [TODO]
+  return T_TRUE;
 }

@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['setbuffer',['setBuffer',['../class_r_t_m_l__writer.html#aab3be0f328a82acbcc166dc0157ba2cf',1,'RTML_writer']]],
-  ['setcountercurrentpage',['setCounterCurrentPage',['../class_circular_buffer.html#aaa42f2411c0e74be37d453c83c6a7509',1,'CircularBuffer::setCounterCurrentPage(uint64_t &amp;counter, uint32_t t) const '],['../class_circular_buffer.html#aaa965f257f936ded107a3042d658b854',1,'CircularBuffer::setCounterCurrentPage(uint32_t &amp;counter, uint32_t t) const ']]],
-  ['setcountervalue',['setCounterValue',['../class_circular_buffer.html#a15cf94e5d42ec5f98659dfd98709de02',1,'CircularBuffer::setCounterValue(uint64_t &amp;counter, size_t idx) const '],['../class_circular_buffer.html#ae7d607bbf6cede1dffe2c4933794f11e',1,'CircularBuffer::setCounterValue(uint32_t &amp;counter, size_t idx) const ']]],
-  ['setdata',['setData',['../class_event.html#a61f6e41a5479fb4540bed11aa17433c6',1,'Event']]],
-  ['setperiod',['setPeriod',['../class_r_t_m_l__monitor.html#acc31bb9054ff18a086207d9c8c6e1993',1,'RTML_monitor']]],
-  ['settime',['setTime',['../class_event.html#a89da62b6367da5ae57ac8f9645a62751',1,'Event']]],
-  ['synchronize',['synchronize',['../class_r_t_m_l__reader.html#aa0b3af8a7eb008e467bb18271529dad8',1,'RTML_reader']]]
+  ['set',['set',['../classEvent.html#a8f09805e1debc14a1428cd6c4d471198',1,'Event::set()'],['../classRMTLD3__reader.html#a45122bc625bd87fe8ea8c2130e612ba2',1,'RMTLD3_reader::set()']]],
+  ['setdata',['setData',['../classEvent.html#a442df4da13b51128b76b55c40f4a4eea',1,'Event']]],
+  ['setperiod',['setPeriod',['../classRTML__monitor.html#acc31bb9054ff18a086207d9c8c6e1993',1,'RTML_monitor']]],
+  ['settime',['setTime',['../classEvent.html#affb0d10259c8b8c196a3e39f11379fd7',1,'Event']]],
+  ['state',['state',['../classRTML__buffer.html#a3c682cc445768ab39c5dcbf3f308aec0',1,'RTML_buffer']]],
+  ['sum_5fdur',['sum_dur',['../rmtld3_8h.html#a7538210ec20855406ac5194a8215ac14',1,'rmtld3.h']]],
+  ['synchronize',['synchronize',['../classRTML__reader.html#ac7f7613a7206b08dd99c93d881dd99d5',1,'RTML_reader']]]
 ];

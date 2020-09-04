@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['enable',['enable',['../class_r_t_m_l__monitor.html#a32dc0dadffad089572e5741f0f825497',1,'RTML_monitor']]],
-  ['enqueue',['enqueue',['../class_circular_buffer.html#a44a81950a23af2e608e794513a3034cf',1,'CircularBuffer::enqueue()'],['../class_r_t_m_l__writer.html#acee8257f6917bd34672f9cdb9bcae478',1,'RTML_writer::enqueue()']]],
-  ['event',['Event',['../class_event.html#a89b811f3b62f4b93b146ffd99b5e28c5',1,'Event::Event()'],['../class_event.html#a8f15cc6f725da960a17d1649ae30ccd6',1,'Event::Event(const T &amp;data, const timespan &amp;time)']]]
+  ['debug',['debug',['../classRTML__buffer.html#a4e89362783cbbdac6ff4973295d7df42',1,'RTML_buffer::debug()'],['../classEvent.html#a5a8e3b665f8009acbf482ac55be7da14',1,'Event::debug()'],['../classRTML__reader.html#a8a868d6166c15b8b15a86e7f5b76fc9f',1,'RTML_reader::debug()'],['../classRMTLD3__reader.html#a026c80424ce41d0b4b9bb59a1bca0049',1,'RMTLD3_reader::debug()']]],
+  ['disable',['disable',['../classRTML__monitor.html#a2d1edff3b08bf17517daec108895ad9a',1,'RTML_monitor']]]
 ];

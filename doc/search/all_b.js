@@ -1,8 +1,18 @@
 var searchData=
 [
-  ['n_5felems_5freader',['n_elems_reader',['../class_r_t_m_l__reader.html#a7ca88a37e0fccd69ac85126ce0a192c3',1,'RTML_reader']]],
-  ['new_5ftm_5fpage',['new_tm_page',['../class_r_t_m_l__writer.html#a842be48117e1d551164d0e22b7117546',1,'RTML_writer']]],
-  ['new_5ftm_5fpage_5fref',['new_tm_page_ref',['../class_r_t_m_l__writer.html#a5d0c119543d069820b9ea35e90356008',1,'RTML_writer']]],
-  ['node',['node',['../class_circular_buffer.html#ac1f04be45e361681a104d6efba5fea79',1,'CircularBuffer']]],
-  ['nodeisready',['nodeIsReady',['../class_circular_buffer.html#a4434fac718e6631a51b31427979c1e6f',1,'CircularBuffer']]]
+  ['ok',['OK',['../classRTML__buffer.html#af6fdfef32f749bac261583588ec44b24ac6d177be741f9d10eeffc52debb11c12',1,'RTML_buffer']]],
+  ['operator_21_3d',['operator!=',['../classEvent.html#ab8a2d53c984e73b2a5b1e76467ecef0c',1,'Event::operator!=(const Event &amp;event) const'],['../classEvent.html#a61b783ae58c88e8f4f07a1fcc23db3b0',1,'Event::operator!=(const timespan &amp;time) const'],['../classEvent.html#af80cfafb40184972e0bd39acf5de49b6',1,'Event::operator!=()'],['../event_8h.html#a0f9edf1e929528404f8b61363da6c1de',1,'operator!=():&#160;event.h']]],
+  ['operator_2b_2b',['operator++',['../classRTML__buffer.html#a1aca2f77bcd2dce26964716a9e74d0de',1,'RTML_buffer::operator++()'],['../classRTML__buffer.html#a9f01a81af5adf25ef7a95513bb425124',1,'RTML_buffer::operator++(int)']]],
+  ['operator_2d_2d',['operator--',['../classRTML__buffer.html#a5b4fb8b420f12990af0a17ecf7f03140',1,'RTML_buffer::operator--()'],['../classRTML__buffer.html#a62abc1cd9612f07832e7f630d85a124a',1,'RTML_buffer::operator--(int)']]],
+  ['operator_3c',['operator&lt;',['../classEvent.html#aafe8d9f18dd56b02b2873c8a9153fa50',1,'Event::operator&lt;(const Event &amp;event) const'],['../classEvent.html#a39a0380083741e72b9c474727d58168f',1,'Event::operator&lt;(const timespan &amp;time) const'],['../classEvent.html#af67487ee5472e5d55a00d8f8c0486c0d',1,'Event::operator&lt;()'],['../event_8h.html#ae0140fa7d875309212217486886530f9',1,'operator&lt;():&#160;event.h']]],
+  ['operator_3c_3d',['operator&lt;=',['../classEvent.html#a477d07b911705343d7cae552ef5117ae',1,'Event::operator&lt;=(const Event &amp;event) const'],['../classEvent.html#abce187490fee6b3da58a69ed3ec7b5f9',1,'Event::operator&lt;=(const timespan &amp;time) const'],['../classEvent.html#a190e23654fb411a969da928d59e541ff',1,'Event::operator&lt;=()'],['../event_8h.html#adc210673ca60135348547eab428ea688',1,'operator&lt;=():&#160;event.h']]],
+  ['operator_3d',['operator=',['../classEvent.html#a439a718d5e03b14c51d79467e99e84c8',1,'Event']]],
+  ['operator_3d_3d',['operator==',['../classEvent.html#a7e4123158d7a324ce4dfb701b8e99703',1,'Event::operator==(const Event &amp;event) const'],['../classEvent.html#a9ecac11e3ca652fb0d63bb673b434463',1,'Event::operator==(const timespan &amp;time) const'],['../classEvent.html#ab6dfd9da69e974a71c1d10ec6481a1bd',1,'Event::operator==()'],['../event_8h.html#abaec4d410aae0789cec38e8aa5e13356',1,'operator==():&#160;event.h']]],
+  ['operator_3e',['operator&gt;',['../classEvent.html#aee77772f19af8a2a6b0099174c9d3f39',1,'Event::operator&gt;(const Event &amp;event) const'],['../classEvent.html#a484fbdbed67bfaaadd36c6e3661daebd',1,'Event::operator&gt;(const timespan &amp;time) const'],['../classEvent.html#ab63537f74f94aad07e4ee79155489172',1,'Event::operator&gt;()'],['../event_8h.html#a63422d153670513ca43f3c5f8bcc5747',1,'operator&gt;():&#160;event.h']]],
+  ['operator_3e_3d',['operator&gt;=',['../classEvent.html#a648ce9a640978a8cc2bf4d7c2bb936e5',1,'Event::operator&gt;=(const Event &amp;event) const'],['../classEvent.html#afca06279cf1b16a07421cc55ea9e40d7',1,'Event::operator&gt;=(const timespan &amp;time) const'],['../classEvent.html#ac46399bd51500b5a5bf18c518307efa8',1,'Event::operator&gt;=()'],['../event_8h.html#a01202d602a7e9339e319e7c13d45cb81',1,'operator&gt;=():&#160;event.h']]],
+  ['other_2emd',['other.md',['../other_8md.html',1,'']]],
+  ['out_5ffv',['out_fv',['../rmtld3_8h.html#a942dd6777541790e2c614dd7b7c1a170',1,'rmtld3.h']]],
+  ['out_5fof_5fbound',['OUT_OF_BOUND',['../classRTML__buffer.html#af6fdfef32f749bac261583588ec44b24ae76cad185023b03daf0ce06a7c0210c0',1,'RTML_buffer']]],
+  ['out_5fp',['out_p',['../rmtld3_8h.html#adfa3f49f3bd007bff1fcf6a2982e3e03',1,'rmtld3.h']]],
+  ['overflow',['OVERFLOW',['../classRTML__buffer.html#af6fdfef32f749bac261583588ec44b24a4fe76ff89953ba360a1fa8adb24f552e',1,'RTML_buffer::OVERFLOW()'],['../classRTML__reader.html#a5b900b2d991e907c2739ce3d95ad2433a9469909e6bc55eb45314ab0dc940b839',1,'RTML_reader::OVERFLOW()']]]
 ];

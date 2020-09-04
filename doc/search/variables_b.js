@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['run',['run',['../structtask.html#a8264bccd495095012f53ad53179a9915',1,'task']]],
-  ['running',['running',['../structtask.html#a5419f0c0b2257e1fd7d798252448d1bd',1,'task']]]
+  ['writer',['writer',['../classRTML__buffer.html#a947bcd65319701c6e95c84e000a5f708',1,'RTML_buffer']]]
 ];

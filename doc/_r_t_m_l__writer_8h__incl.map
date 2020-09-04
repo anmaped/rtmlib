@@ -1,7 +1,0 @@
-<map id="RTML_writer.h" name="RTML_writer.h">
-<area shape="rect" id="node2" href="$_event_8h.html" title="Event.h" alt="" coords="80,155,145,181"/>
-<area shape="rect" id="node6" href="$_circular_buffer_8h.html" title="CircularBuffer.h" alt="" coords="171,80,281,107"/>
-<area shape="rect" id="node4" href="$time__compat_8h.html" title="time_compat.h" alt="" coords="5,229,113,256"/>
-<area shape="rect" id="node5" href="$atomic__compat_8h.html" title="atomic_compat.h" alt="" coords="85,304,207,331"/>
-<area shape="rect" id="node8" href="$debug__compat_8h.html" title="debug_compat.h" alt="" coords="357,155,476,181"/>
-</map>

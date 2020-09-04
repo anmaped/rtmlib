@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['array',['array',['../class_r_t_m_l__buffer.html#ae1faefcda13694d21b2ddae9e212f12a',1,'RTML_buffer']]]
+  ['array',['array',['../classRTML__buffer.html#ae9c5eb3ff6e49a7e2fb94aad54003e5a',1,'RTML_buffer']]]
 ];

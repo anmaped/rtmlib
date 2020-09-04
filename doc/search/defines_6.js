@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['timespecadd',['timespecadd',['../time__compat_8h.html#afaf9e7f0147e1928934ddff5f9a591a5',1,'time_compat.h']]],
-  ['timespecclear',['timespecclear',['../time__compat_8h.html#a3e792fc28a12a84d135a45d64ae2f5e0',1,'time_compat.h']]],
-  ['timespeccmp',['timespeccmp',['../time__compat_8h.html#a7c2e9e3a019238d2bbd62c2ee995e30f',1,'time_compat.h']]],
-  ['timespecisset',['timespecisset',['../time__compat_8h.html#a1c77b4d794c583c9f3ccb06204a1c33e',1,'time_compat.h']]],
-  ['timespecsub',['timespecsub',['../time__compat_8h.html#a3978f131511b06863cfcc9092fe881e4',1,'time_compat.h']]]
+  ['p_5fok',['P_OK',['../task__compat_8h.html#a50d6f5b5ddd15bb872602f0b43cfae31',1,'task_compat.h']]],
+  ['pcheck',['pcheck',['../task__compat_8h.html#a57a2d9f10dd947f2902625ce1d3cf521',1,'task_compat.h']]],
+  ['pcheck_5fattr',['pcheck_attr',['../task__compat_8h.html#a586803fa47a9e3b167595de7a73917bf',1,'task_compat.h']]],
+  ['pcheck_5fprint',['pcheck_print',['../task__compat_8h.html#ab21123603f96f805e1904cfe9ca481ef',1,'task_compat.h']]]
 ];

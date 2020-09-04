@@ -25,7 +25,7 @@ cd tests/
 make
 ```
 
-The expected output is something like
+The expected output might be similar to
 ```
 $ ./rtmlib_unittests 
 rtmlib_rmtld3_nested_until.cpp success.

@@ -1,9 +1,9 @@
 
-# RTEMLib Task Helpers
+# RTMLib Task Helpers
 
 ## Creating tasks
 
-RTEMLib contains helpers to aid the creation of tasks. __task is the type of the task descriptor.
+RTMLib contains helpers to aid the creation of tasks. __task is the type of the task descriptor.
 
 ```__task``` should be used to initialize task helpers as follows:
 

@@ -2,11 +2,11 @@
 
 [![Build Status](https://travis-ci.org/anmaped/rtmlib.svg?branch=v0.2)](https://travis-ci.org/anmaped/rtmlib)
 
-## Run unit tests
+## Run rtmlibv0.2 tests
 
 Use the `make` command to build the unit tests.
 ```
-cd unitests/
+cd tests/
 make
 ```
 

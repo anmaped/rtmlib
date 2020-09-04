@@ -1,21 +1,21 @@
 /**
- * rmtlib_buffer push and pop
+ * rmtlib_buffer push and pull
  */
 
 #include <assert.h>
 
-#include <RTML_buffer.h>
+#include <circularbuffer.h>
 
-int rtmlib_buffer_push_and_pop() {
+int rtmlib_buffer_push_and_pull() {
 
   RTML_buffer<Event<int>, 100> buf;
-  int ID = 0x01;
+  int ID = 1;
 
   assert(buf.length() == 0);
 
   Event<int> node0 = Event<int>(ID, 0);
 
-  assert(buf.pop(node0) == buf.EMPTY);
+  assert(buf.pull(node0) == buf.EMPTY);
   buf.push(node0);
 
   Event<int> node1 = Event<int>(ID, 1);
@@ -28,12 +28,12 @@ int rtmlib_buffer_push_and_pop() {
 
   assert([&]() {
     Event<int> _ev;
-    buf.pop(_ev);
+    buf.pull(_ev);
     return _ev.getTime();
-  }() == 2 &&
+  }() == 0 &&
          [&]() {
            Event<int> _ev;
-           buf.pop(_ev);
+           buf.pull(_ev);
            return _ev.getTime();
          }() == 1);
 
@@ -51,7 +51,7 @@ int rtmlib_buffer_push_and_pop() {
            Event<int> _ev;
            buf.read(_ev, 1);
            return _ev.getTime();
-         }() == 3);
+         }() == 1);
 
   // fill and overload
   Event<int> nodex = Event<int>();
@@ -69,13 +69,13 @@ int rtmlib_buffer_push_and_pop() {
     Event<int> _ev;
     buf.read(_ev, 0);
     return _ev.getTime();
-  }() == 99);
+  }() == 97);
 
   for (i = 0; i < 110; i++) {
     if (i >= 100)
-      assert(buf.pop(nodex) == buf.EMPTY);
+      assert(buf.pull(nodex) == buf.EMPTY);
     else
-      assert(buf.pop(nodex) == buf.OK);
+      assert(buf.pull(nodex) == buf.OK);
   }
 
   printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);

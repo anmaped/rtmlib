@@ -22,8 +22,8 @@
 #ifndef _RTEML_WRITER_H_
 #define _RTEML_WRITER_H_
 
-#include "RTML_event.h"
-#include "RTML_buffer.h"
+#include "event.h"
+#include "circularbuffer.h"
 
 /**
  * Writes events to a RTML_buffer.

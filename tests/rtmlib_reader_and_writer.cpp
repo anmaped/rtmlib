@@ -4,9 +4,9 @@
 
 #include <assert.h>
 
-#include <RTML_buffer.h>
-#include <RTML_reader.h>
-#include <RTML_writer.h>
+#include <circularbuffer.h>
+#include <reader.h>
+#include <writer.h>
 
 int rtmlib_reader_and_writer() {
 

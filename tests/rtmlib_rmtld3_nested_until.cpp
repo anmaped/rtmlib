@@ -4,8 +4,8 @@
 
 #include <cstring>
 
-#include <RTML_buffer.h>
-#include <RTML_reader.h>
+#include <circularbuffer.h>
+#include <reader.h>
 #include <rmtld3/reader.h>
 #include <rmtld3/rmtld3.h>
 #include <rmtld3/macros.h>

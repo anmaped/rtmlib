@@ -19,13 +19,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _RTML_BUFFER_H_
-#define _RTML_BUFFER_H_
+#ifndef _RTML_CIRCULARBUFFER_H_
+#define _RTML_CIRCULARBUFFER_H_
 
 #include <stdio.h>
 //#include <time.h>
 
-#include "RTML_event.h"
+#include "event.h"
 #include "debug_compat.h"
 
 /**
@@ -232,4 +232,4 @@ template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
   DEBUGV3_APPEND("\n");
 }
 
-#endif //_RTML_BUFFER_H_
+#endif //_RTML_CIRCULARBUFFER_H_

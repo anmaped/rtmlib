@@ -27,8 +27,8 @@
 #include <tuple>
 #include <utility>
 
-#include "RTML_buffer.h"
-#include "RTML_event.h"
+#include "circularbuffer.h"
+#include "event.h"
 
 /**
  * Reader to support local RTML_buffer management.

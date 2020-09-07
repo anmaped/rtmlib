@@ -109,6 +109,11 @@ public:
    * @return the template parameter N.
    */
   size_t length() const;
+
+  /**
+   * Debug function
+   */
+  void debug() const;
 };
 
 template <typename B>
@@ -172,12 +177,13 @@ template <typename B> bool RTML_reader<B>::synchronize() {
   buffer.state(b, t, ts);
 
   if (timestamp > ts) {
-    // no gaps, but the reader may be further ahead
+    // no gaps, but the reader cannot be further ahead
+    top = t; // set new top
     return false;
   } else {
     // update reader state
-    bottom = b;
     top = t;
+    bottom = b;
     timestamp = ts;
 
     // there is a gap
@@ -198,6 +204,10 @@ template <typename B> bool RTML_reader<B>::gap() const {
 
 template <typename B> size_t RTML_reader<B>::length() const {
   return (top >= bottom) ? top - bottom : (buffer.size + 1) - (bottom - top);
+}
+
+template <typename B> void RTML_reader<B>::debug() const {
+  DEBUGV("bottom:%d top:%d timestamp:%lu\n", bottom, top, timestamp);
 }
 
 #endif //_RTEML_READER_H_

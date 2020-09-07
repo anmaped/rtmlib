@@ -25,8 +25,8 @@
 #include <stdio.h>
 //#include <time.h>
 
-#include "event.h"
 #include "debug_compat.h"
+#include "event.h"
 
 /**
  * RTML_buffer implements a circular buffer. This buffer is the support
@@ -227,8 +227,8 @@ template <typename T, size_t N> size_t RTML_buffer<T, N>::length() const {
 template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
   DEBUGV3(" ");
   for (unsigned int idx = 0; idx < N + 1; idx++)
-    DEBUGV3_APPEND("%lu,%d; ", array[idx].ev.getTime(),
-                   array[idx].ev.getData());
+    array[idx].debug();
+
   DEBUGV3_APPEND("\n");
 }
 

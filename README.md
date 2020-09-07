@@ -17,6 +17,10 @@ rtmlib has a direct connection with the rmtld3synth tool as a monitor integratio
 
 See [https://anmaped.github.io/rtmlib/doc/](https://anmaped.github.io/rtmlib/doc/) for more details.
 
+### Run rtmlibv0.2 examples
+
+See `examples` folder for more details.
+
 ### Run rtmlibv0.2 tests
 
 Use the `make` command to build the unit tests.

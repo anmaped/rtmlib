@@ -42,31 +42,26 @@ void *RTML_monitor::loop(void *ptr) {
 
   for (;;) {
 
-    ::printf("loop+...\n");
-
     clock_gettime(CLOCK_REALTIME, &now);
 
     // convert useconds_t to struct timespec
     struct timespec p;
 
-    ::printf("useconds: %lu\n", monitor->m_state.period);
-
     useconds_t2timespec(&monitor->m_state.period, &p);
 
-    ::printf("timespecp: %lu,%lu\n", p.tv_sec, p.tv_nsec);
-
-    ::printf("timespec: %lu,%lu\n", next.tv_sec, next.tv_nsec);
+    DEBUGV3("period in us: %lu\n", monitor->m_state.period);
+    DEBUGV3("period in (s, ns): %lu, %lu\n", p.tv_sec, p.tv_nsec);
+    DEBUGV3("current time in (s, ns): %lu,%lu\n", now.tv_sec, now.tv_nsec);
+    DEBUGV3("current last next time in (s, ns): %lu, %lu\n", next.tv_sec, next.tv_nsec);
 
     timespecadd(&next, &p, &next);
 
-    ::printf("timespec2: %lu,%lu\n", next.tv_sec, next.tv_nsec);
-
-    ::printf("timespecnow: %lu,%lu\n", now.tv_sec, now.tv_nsec);
+    DEBUGV3("next time in (s, ns): %lu, %lu\n", next.tv_sec, next.tv_nsec);
 
     if (timespeccmp(&now, &next, >)) {
 
       timespecsub(&next, &now, &tmp);
-      ::printf("RTML_monitor is missing their deadline for %lu s.%lu ns\n",
+      DEBUGV_ERROR("RTML_monitor is missing their deadline for %lu s.%lu ns\n",
                tmp.tv_sec, tmp.tv_nsec);
     }
 
@@ -100,9 +95,9 @@ int RTML_monitor::enable() {
     pcheck_attr(pthread_attr_setschedpolicy(&attribute, m_state.sched_policy),
                 &attribute);
 
-    int stack_size = 5000;
-    pcheck_attr(pthread_attr_setstacksize(&attribute, stack_size), &attribute);
-    DEBUGV("Stack:%d\n", stack_size);
+    pcheck_attr(pthread_attr_setstacksize(&attribute, m_state.stack_size),
+                &attribute);
+    DEBUGV("Stack:%d\n", m_state.stack_size);
 
     parameter.sched_priority = m_state.priority;
     DEBUGV("Priority:%d\n", m_state.priority);

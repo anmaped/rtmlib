@@ -24,6 +24,7 @@
 
 #include <time.h>
 
+#include "debug_compat.h"
 #include "time_compat.h"
 
 /**
@@ -66,14 +67,7 @@ public:
    *
    * @return a reference to this events Data.
    */
-  T &getData();
-
-  /**
-   * Gets the event creation time.
-   *
-   * @return the event current time.
-   */
-  timespan getTime();
+  const T &getData() const;
 
   /**
    * Gets the event creation time.
@@ -98,14 +92,9 @@ public:
   void setData(T &);
 
   /**
-   * Checks if this object is null.
-   *
-   * An object is determined to be null if the current time is zeroed out,
-   * that is if time.tv_sec is 0 and time_.tv_nsec is 0.
-   *
-   * @return whether this is a nullObject.
+   * Debug function
    */
-  bool isNull() const;
+  void debug() const;
 
   /**
    * Copies the Events data pointed by event to this object.
@@ -283,9 +272,9 @@ template <typename T>
 Event<T>::Event(const T &ddata, const timespan &ttime)
     : data(ddata), time(ttime) {}
 
-template <typename T> T &Event<T>::getData() { return data; }
+template <typename T> const T &Event<T>::getData() const { return data; }
 
-template <typename T> timespan Event<T>::getTime() { return time; }
+template <typename T> const timespan &Event<T>::getTime() const { return time; }
 
 template <typename T> void Event<T>::set(T &d, timespan &t) {
   time = t;
@@ -296,11 +285,8 @@ template <typename T> void Event<T>::setTime(timespan &t) { time = t; }
 
 template <typename T> void Event<T>::setData(T &d) { data = d; }
 
-template <typename T> const timespan &Event<T>::getTime() const { return time; }
-
-template <typename T> bool Event<T>::isNull() const {
-  // [TODO] this function is incorrect
-  return time == 0;
+template <typename T> void Event<T>::debug() const {
+  DEBUGV3_APPEND("%d,%lu; ", getData(), getTime());
 }
 
 template <typename T> Event<T> &Event<T>::operator=(const Event *event) {
@@ -386,5 +372,4 @@ template <typename T>
 bool operator!=(const timespan &ttime, const Event<T> &event) {
   return ttime != event.time;
 }
-
 #endif //_MONITOR_EVENT_H_

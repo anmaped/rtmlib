@@ -67,6 +67,11 @@ private:
      * documentation for more details. */
     const int priority;
 
+    /**
+     * Stack size
+     */
+    const size_t stack_size;
+
     /** Status of the monitor */
     mon_status status;
 
@@ -80,7 +85,7 @@ private:
     useconds_t period;
 
     Monitor_state(const int sch, const int prio, const useconds_t p)
-        : sched_policy(sch), priority(prio), status(UNACTIVATE), period(p){};
+        : sched_policy(sch), priority(prio), status(UNACTIVATE), period(p), stack_size(STACK_SIZE) {};
 
   } m_state;
 

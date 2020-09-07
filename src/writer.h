@@ -22,8 +22,8 @@
 #ifndef _RTEML_WRITER_H_
 #define _RTEML_WRITER_H_
 
-#include "event.h"
 #include "circularbuffer.h"
+#include "event.h"
 
 /**
  * Writes events to a RTML_buffer.
@@ -33,45 +33,42 @@
  * @author André Pedro
  * @date
  */
-template<typename B>
-class RTML_writer {
+template <typename B> class RTML_writer {
 private:
-    /**
-     * Points to a ring buffer this RTML_writer writes to.
-     *
-     * @see Ring_buffer
-     */
-	B& buffer;
+  /**
+   * Points to a ring buffer this RTML_writer writes to.
+   *
+   * @see Ring_buffer
+   */
+  B &buffer;
 
 public:
+  /**
+   * Instantiates a new RTML_writer.
+   *
+   * @param buffer the Buffer to write to.
+   */
+  RTML_writer(B &buffer);
 
-    /**
-     * Instantiates a new RTML_writer.
-     *
-     * @param buffer the Buffer to write to.
-     */
-    RTML_writer(B& buffer);
-
-    /**
-    * enqueues an event to the Buffer.
-    *
-    * @param data a constant reference to the data to be pushed.
-    */
-    typename B::error_t push(const typename B::event_t&);
-
+  /**
+   * push an event to the Buffer.
+   *
+   * @param data a constant reference to the data to be pushed.
+   */
+  typename B::error_t push(typename B::event_t &);
 };
 
-template<typename B>
-RTML_writer<B>::RTML_writer(B& _buffer) : buffer(_buffer)
-{
+template <typename B>
+RTML_writer<B>::RTML_writer(B &_buffer) : buffer(_buffer) {}
 
-}
+template <typename B>
+typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
 
-template<typename B>
-typename B::error_t RTML_writer<B>::push(const typename B::event_t& event) {
-	typename B::error_t e = buffer.push(event);
+  timespan timestamp = clockgettime();
+  event.setTime(timestamp);
+  typename B::error_t e = buffer.push(event);
 
-    return e;
+  return e;
 }
 
 #endif //_RTEML_WRITER_H_

@@ -97,7 +97,7 @@ int RTML_monitor::enable() {
 
     pcheck_attr(pthread_attr_setstacksize(&attribute, m_state.stack_size),
                 &attribute);
-    DEBUGV("Stack:%d\n", m_state.stack_size);
+    DEBUGV("Stack:%lu\n", m_state.stack_size);
 
     parameter.sched_priority = m_state.priority;
     DEBUGV("Priority:%d\n", m_state.priority);

@@ -2,7 +2,8 @@ language: c
 sudo: required
 
 script:
-  - cd tests && make && ./rtmlib_unittests
+  - cd tests && make && ./rtmlib_unittests && cd -
+  - cd examples/ && make
 
 addons:
   apt:

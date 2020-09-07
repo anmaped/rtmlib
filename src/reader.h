@@ -207,7 +207,7 @@ template <typename B> size_t RTML_reader<B>::length() const {
 }
 
 template <typename B> void RTML_reader<B>::debug() const {
-  DEBUGV("bottom:%d top:%d timestamp:%lu\n", bottom, top, timestamp);
+  DEBUGV("bottom:%lu top:%lu timestamp:%lli\n", bottom, top, timestamp);
 }
 
 #endif //_RTEML_READER_H_

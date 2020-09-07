@@ -2,7 +2,7 @@ SRC_DIR := .
 OBJ_DIR := .
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
-LDFLAGS := -pthread -DDEBUG=1
+LDFLAGS := -std=c++11 -pthread -DDEBUG=1
 CPPFLAGS := -std=c++11 -I../../src/ -DDEBUG=1
 CXXFLAGS := 
 

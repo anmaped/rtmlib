@@ -25,6 +25,8 @@
 #include "circularbuffer.h"
 #include "event.h"
 
+#include "atomic_compat.h"
+
 /**
  * Writes events to a RTML_buffer.
  *
@@ -41,6 +43,11 @@ private:
    * @see Ring_buffer
    */
   B &buffer;
+
+  /**
+   * the zeroed atomic page and id
+   */
+  ATOMIC_PAGE_SWAP();
 
 public:
   /**
@@ -64,11 +71,32 @@ RTML_writer<B>::RTML_writer(B &_buffer) : buffer(_buffer) {}
 template <typename B>
 typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
 
-  timespan timestamp = clockgettime();
-  event.setTime(timestamp);
-  typename B::error_t e = buffer.push(event);
+  typename B::error_t err;
 
-  return e;
+#if defined(__HW__)
+  err = buffer.push(event);
+#else
+  size_t top;
+
+  ATOMIC({
+    timespan timestamp = clockgettime();
+    event.setTime(timestamp);
+
+    top = stateref->top;
+    stateref->top = ((size_t)(stateref->top + 1) % (buffer.size + 1));
+
+    bool p = stateref->top == stateref->bottom;
+
+    if (p)
+      stateref->bottom = ((size_t)(stateref->bottom + 1) % (buffer.size + 1));
+
+    err = (p) ? buffer.OVERFLOW : buffer.OK;
+  });
+
+  buffer.write(event, top);
+#endif
+
+  return err;
 }
 
 #endif //_RTEML_WRITER_H_

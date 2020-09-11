@@ -78,7 +78,7 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
 #else
   size_t top;
 
-  ATOMIC({
+  ATOMIC_PUSH({
     timespan timestamp = clockgettime();
     event.setTime(timestamp);
 

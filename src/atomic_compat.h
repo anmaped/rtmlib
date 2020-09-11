@@ -161,12 +161,16 @@ union page_t {
     page;                                                                      \
   }
 
-struct __state {
-  size_t top;
-  size_t bottom;
-};
-
-typedef struct __state state_t;
+#define ATOMIC_TYPE()                                                          \
+  struct __state {                                                             \
+    size_t top;                                                                \
+    size_t bottom;                                                             \
+    /* variables that can help to confirm that the last value is ready */      \
+    size_t pos;                                                                \
+    event_t event;                                                             \
+  };                                                                           \
+                                                                               \
+  typedef struct __state state_t
 
 #define _bottom()                                                              \
   ((state_t *)(((page_t)std::atomic_load(&page)).stateref))->bottom
@@ -179,25 +183,39 @@ typedef struct __state state_t;
   ts = array[s->bottom].getTime();
 
 #define ATOMIC_PAGE()                                                          \
-  state_t state_global = {0};                                                  \
+  state_t state_global = {                                                     \
+      .top = 0, .bottom = 0, .pos = 0, .event = event_t()};                    \
   std::atomic<page_t> page =                                                   \
       ATOMIC_VAR_INIT({(NATIVE_POINTER_TYPE)&state_global})
 
 #define ATOMIC_PAGE_SWAP()                                                     \
+  typedef typename B::state_t state_t;                                         \
   state_t state;                                                               \
   state_t *stateref = &state;
 
-#define ATOMIC(body)                                                           \
+#define ATOMIC_PUSH(body)                                                      \
   bool fail = false;                                                           \
   page_t current_page_content, new_page_content;                               \
+  typename B::event_t evt;                                                     \
   do {                                                                         \
     if (fail) {                                                                \
-      /*pthread_yield();*/                                                     \
+      /* do a yield here */                                                    \
+      pthread_yield();                                                         \
       fail = false;                                                            \
     }                                                                          \
                                                                                \
     current_page_content = (page_t)std::atomic_load(&buffer.page);             \
     new_page_content = current_page_content;                                   \
+                                                                               \
+  /* give a chance to complete the last push if it is not ready yet */         \
+  complete:                                                                    \
+    buffer.read(evt, ((state_t *)current_page_content.stateref)->pos);         \
+    DEBUGV("%lu\n", ((state_t *)current_page_content.stateref)->pos);          \
+    if (!(((state_t *)current_page_content.stateref)->event == evt)) {         \
+      /* do a yield here */                                                    \
+      pthread_yield();                                                         \
+      goto complete;                                                           \
+    }                                                                          \
                                                                                \
     if (&state == (state_t *)current_page_content.stateref) {                  \
       /* current state is in use; use buffer state */                          \
@@ -210,11 +228,16 @@ typedef struct __state state_t;
     /* copy state */                                                           \
     stateref->bottom = ((state_t *)current_page_content.stateref)->bottom;     \
     stateref->top = ((state_t *)current_page_content.stateref)->top;           \
+    stateref->pos = stateref->top;                                             \
                                                                                \
     body;                                                                      \
+                                                                               \
+    /* copy remaining state */                                                 \
+    stateref->event = event;                                                   \
+                                                                               \
     DEBUGV("address:%p content:%p,%lu id:%p\n", &buffer.page,                  \
-           (state_t *)current_page_content.stateref, current_page_content.counter,        \
-           &state);                                                            \
+           (state_t *)current_page_content.stateref,                           \
+           current_page_content.counter, &state);                              \
   } while (                                                                    \
       fail = !(std::atomic_compare_exchange_strong(                            \
           &buffer.page, &current_page_content, (update(new_page_content)))));

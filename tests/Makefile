@@ -2,7 +2,7 @@ SRC_DIR := .
 OBJ_DIR := .
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
-LDFLAGS := -latomic -mcx16 # -mcx16 flag is required for gcc versions <7
+LDFLAGS := -pthread -latomic -mcx16 # -mcx16 flag is required for gcc versions <7
 CPPFLAGS := -std=c++11 -mcx16 -I../src/ #-DDEBUG=3
 CXXFLAGS := 
 

@@ -106,6 +106,7 @@ public:
 
   typedef enum { OK = 0, EMPTY, OVERFLOW, OUT_OF_BOUND, UNSAFE } error_t;
 
+  ATOMIC_TYPE();
   ATOMIC_PAGE();
 
   /**
@@ -211,18 +212,19 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(event_t &event) {
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
 RTML_buffer<T, N>::read(event_t &event, size_t index) const {
-  event = array[index];
+  if(index < N + 1)
+    event = array[index];
 
-  return index < N ? OK : OUT_OF_BOUND;
+  return index < N + 1 ? OK : OUT_OF_BOUND;
 }
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
 RTML_buffer<T, N>::write(event_t &event, size_t index) {
-  if(index < N)
+  if(index < N + 1)
     array[index] = event;
 
-  return index < N ? OK : OUT_OF_BOUND;
+  return index < N + 1 ? OK : OUT_OF_BOUND;
 }
 
 template <typename T, size_t N>

@@ -139,7 +139,7 @@ RTML_reader<B>::pull(typename B::event_t &event) {
     av = true;
   }
 
-  printf("pull-> %d (%d,%d)\n", length(), bottom, top);
+  DEBUGV3("pull-> length=%lu bottom=%lu top=%lu\n", length(), bottom, top);
 
   if (gap())
     return OVERFLOW;

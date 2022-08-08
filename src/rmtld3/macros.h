@@ -26,6 +26,8 @@
 
 #include <utility>
 
+#include "rmtld3.h"
+
 /**
  * Proposition
  */

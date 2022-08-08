@@ -38,6 +38,7 @@
  * hardware synthesis does not consider any concurrency.
  */
 
+/* Hardware settings */
 #ifdef __HW__
 
 typedef unsigned int uint32_t;
@@ -60,67 +61,42 @@ typedef unsigned int uint32_t;
   t = _top();                                                                  \
   ts = array[_bottom()].getTime();
 
+/* Software */
+#elif defined(__arm__) || defined(__x86__) || defined(__x86_64__)
+
 /*
  *
- * arm and aarch64 atomic macros
+ * ARM32 atomic macros
  *
  */
-#elif defined(ARM_CM4_FP)
+#if defined(__arm__)
 
-#include <ARMCM4_FP.h>
+//#warning "Atomic guarantees on ARM32 are not supported yet!"
 
 #include <atomic>
 
-/*
-#define ATOMIC_begin(expression, dest)                                         \
-  uint32_t __lst_;                                                             \
-  __DMB();                                                                     \
-  do {                                                                         \
-    __lst_ = expression __LDREXW((uint32_t *)dest);
-
-#define ATOMIC_end(dest)                                                       \
-  }                                                                            \
-  while (__STREXW(__lst_, (uint32_t *)dest))                                   \
-    ;
-
-#define DMB __DMB();
-#define DSB __DSB();
-#define ISB __ISB();
-*/
-
-#define FRAME_ADDRESS frame_address
-
-#define OLD_FRAME_ADDRESS __old_value32
-
-#define FRAME_ADDRESS_type std::atomic<uint32_t>
-
-#define FRAME_ADDRESS_subtype uint32_t
-
-#define ATOMIC_begin(dest)                                                     \
-  bool fail = false;                                                           \
-  uint32_t OLD_FRAME_ADDRESS = (uint32_t)std::atomic_load(&dest);              \
-  do {                                                                         \
-    if (fail) {                                                                \
-      pthread_yield();                                                         \
-    }
-
-#define ATOMIC_end(new_value, dest)                                            \
-  }                                                                            \
-  while ((fail = !std::atomic_compare_exchange_strong(                         \
-              &dest, &OLD_FRAME_ADDRESS, (uint32_t)new_value)))                \
-    ;
-
-#define ATOMIC_begin_VALUE64_NOEXCHANGE(dest)                                  \
-  uint32_t OLD_FRAME_ADDRESS = (uint32_t)std::atomic_load(&dest);              \
-  do {
-
-#define ATOMIC_end_VALUE64_NOEXCHANGE(dest)                                    \
-  }                                                                            \
-  while (!(std::atomic_load(&dest) == OLD_FRAME_ADDRESS))                      \
-    ;
+#ifdef NO_THREADS
+#define pthread_yield()
+#elif defined(__FREERTOS__)
+#include <FreeRTOS_POSIX/sched.h>
+#define pthread_yield() (sched_yield())
+#endif
 
 #define NATIVE_POINTER_TYPE uint32_t
 #define NATIVE_ATOMIC_POINTER uint32_t
+
+union page_t {
+  NATIVE_ATOMIC_POINTER wide_uniqueid;
+  struct {
+    NATIVE_POINTER_TYPE stateref;
+  };
+};
+
+#define update(page)                                                           \
+  {                                                                            \
+    page.stateref = (NATIVE_POINTER_TYPE)stateref;                             \
+    page;                                                                      \
+  }
 
 /*
  *
@@ -134,7 +110,7 @@ typedef unsigned int uint32_t;
 #if defined(__x86__)
 #define NATIVE_POINTER_TYPE uint32_t
 #define NATIVE_ATOMIC_POINTER uint64_t
-#else
+#elif defined(__x86_64__)
 #define NATIVE_POINTER_TYPE uint64_t
 #define NATIVE_ATOMIC_POINTER __int128
 #endif
@@ -160,6 +136,8 @@ union page_t {
     page.stateref = (NATIVE_POINTER_TYPE)stateref;                             \
     page;                                                                      \
   }
+
+#endif
 
 #define ATOMIC_TYPE()                                                          \
   struct __state {                                                             \

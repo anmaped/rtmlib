@@ -1,5 +1,5 @@
 /**
- * rmtlib_buffer push and pop
+ * rtmlib reader and writer
  */
 
 #include <assert.h>
@@ -7,6 +7,8 @@
 #include <circularbuffer.h>
 #include <reader.h>
 #include <writer.h>
+
+extern "C" int rtmlib_reader_and_writer();
 
 int rtmlib_reader_and_writer() {
 

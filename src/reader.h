@@ -22,11 +22,6 @@
 #ifndef _RTEML_READER_H_
 #define _RTEML_READER_H_
 
-#include <array>
-#include <time.h>
-#include <tuple>
-#include <utility>
-
 #include "circularbuffer.h"
 #include "event.h"
 
@@ -126,23 +121,30 @@ RTML_reader<B>::pull(typename B::event_t &event) {
 
   typename B::event_t event_next;
 
-  if (length() > 0) {
+  int delta = 2;
+  bool av = false;
+  if (length() > delta) {
     // read in an atomic way
     if (buffer.read(event, bottom) != buffer.OK)
       return BUFFER_READ;
 
     // update local bottom
-    bottom = (size_t)(bottom + 1) % (buffer.size + 0);
-    if (buffer.read(event_next, bottom) == buffer.OK)
+    bottom = (size_t)(bottom + 1) % (buffer.size + 1);
+    // use last known timestamp (delta bigger than one helps to find the right
+    // timestamp)
+    if (buffer.read(event_next, bottom) == buffer.OK) {
       timestamp = event_next.getTime();
+    }
+
+    av = true;
   }
 
-  DEBUGV3("pull-> %d (%d,%d)\n", length(), bottom, top);
+  printf("pull-> %d (%d,%d)\n", length(), bottom, top);
 
   if (gap())
     return OVERFLOW;
   else
-    return (length() > 0) ? AVAILABLE : UNAVAILABLE;
+    return (length() > delta || av) ? AVAILABLE : UNAVAILABLE;
 }
 
 template <typename B>
@@ -176,18 +178,84 @@ template <typename B> bool RTML_reader<B>::synchronize() {
   timespanw ts;
   buffer.state(b, t, ts);
 
-  if (timestamp > ts) {
-    // no gaps, but the reader cannot be further ahead
-    top = t; // set new top
-    return false;
-  } else {
-    // update reader state
-    top = t;
-    bottom = b;
-    timestamp = ts;
+  DEBUGV("reader ts:%lu buffer ts:%lu\n", timestamp, ts);
 
-    // there is a gap
-    return true;
+  /*
+   *
+   * Example:
+   *
+   * ts(reader.bottom) < ts(buffer.b) > ts(buffer.t)
+   * 7                   9              8
+   * (t < b) implies (0 < ts(bottom) < ts(b)) or (ts(t) < ts(bottom)  <
+   *  buffer.size)
+   *
+   * (b < t) implies (ts(b) < ts(bottom) < ts(t))
+   *
+   * (t == b) should not happen
+   *
+   */
+
+  typename B::event_t event;
+  buffer.read(event,
+              t); // it may be better to include it inside the state [TODO]
+  size_t ts_t = event.getTime();
+
+  DEBUGV("sync: %d %d %d %d %d | %d %d %d\n", t < b, b < t, 0 < timestamp < ts,
+         ts_t < timestamp < buffer.size, ts < timestamp < ts_t, bottom, b, t);
+
+  if (t < b) {
+    if ((0 < timestamp < ts) || (ts_t < timestamp < buffer.size)) {
+      /*
+       * This can be triggered in the begining to syncronize the reader for the
+       * first time.
+       */
+      if (gap()) {
+        top = t;
+        bottom = b;
+        timestamp = ts;
+        return true;
+      }
+      // update top (no gap found)
+      top = t;
+      return false; // SOFT_SYNC
+    } else {
+      // reader is out of sync
+      top = t;
+      bottom = b;
+      timestamp = ts;
+
+      return true; // HARD_SYNC
+    }
+  } else if (b < t) {
+    if (ts < timestamp < ts_t) {
+      // update top (no gap found)
+      top = t;
+
+      return false; // SOFT_SYNC
+    } else {
+      // reader is out of sync
+      top = t;
+      bottom = (b < bottom && b < t) ? bottom : b;
+      timestamp = (b < bottom && b < t) ? timestamp : ts;
+
+      return true; // HARD_SYNC
+    }
+  } else {
+    /*
+     * This can be triggered in the begining to syncronize the reader for the
+     * first time.
+     */
+    if (top == 0 && bottom == 0) {
+      top = t;
+      bottom = b;
+      timestamp = ts;
+
+      return true; // INIT SYNC
+    } else {
+      // (t == b) should not happen
+      while (true) {
+      }
+    }
   }
 }
 
@@ -203,7 +271,8 @@ template <typename B> bool RTML_reader<B>::gap() const {
 }
 
 template <typename B> size_t RTML_reader<B>::length() const {
-  return (top >= bottom) ? top - bottom : (buffer.size + 1) - (bottom - top);
+  return (top >= bottom) ? top - bottom + 1
+                         : (buffer.size + 1) - (bottom - top);
 }
 
 template <typename B> void RTML_reader<B>::debug() const {

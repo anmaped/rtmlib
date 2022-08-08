@@ -29,6 +29,7 @@ public:
   };
 };
 
+extern "C" int rtmlib_rmtld3_nested_until();
 
 int rtmlib_rmtld3_nested_until() {
 

@@ -2,6 +2,7 @@
 #define _RMTLD3_H_
 
 #include <assert.h>
+#include <utility>
 
 typedef unsigned int proposition;
 typedef float realnumber;

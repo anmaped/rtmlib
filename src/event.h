@@ -22,8 +22,6 @@
 #ifndef _MONITOR_EVENT_H_
 #define _MONITOR_EVENT_H_
 
-#include <time.h>
-
 #include "debug_compat.h"
 #include "time_compat.h"
 
@@ -79,7 +77,7 @@ public:
   /**
    * Set event
    */
-  void set(T &, timespan &);
+  void set(T &, const timespan &);
 
   /**
    * Set time of the event
@@ -276,7 +274,7 @@ template <typename T> const T &Event<T>::getData() const { return data; }
 
 template <typename T> const timespan &Event<T>::getTime() const { return time; }
 
-template <typename T> void Event<T>::set(T &d, timespan &t) {
+template <typename T> void Event<T>::set(T &d, const timespan &t) {
   time = t;
   data = d;
 }
@@ -286,7 +284,8 @@ template <typename T> void Event<T>::setTime(timespan &t) { time = t; }
 template <typename T> void Event<T>::setData(T &d) { data = d; }
 
 template <typename T> void Event<T>::debug() const {
-  DEBUGV3_APPEND("%d,%lu; ", getData(), getTime());
+  DEBUGV3_APPEND("0x%x,0x%x s.0x%x ns; ", getData(), L(getTime() >> 32),
+                 L(getTime()));
 }
 
 template <typename T> Event<T> &Event<T>::operator=(const Event *event) {

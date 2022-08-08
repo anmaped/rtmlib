@@ -1,7 +1,6 @@
 #ifndef _RMTLD3_READER_H_
 #define _RMTLD3_READER_H_
 
-#include <functional>
 #include <numeric>
 
 #include "pattern.h"
@@ -18,12 +17,13 @@ public:
   /**
    *  Local memory for dynamic programming pattern
    */
-  P& lmem;
+  P &lmem;
 
   /**
    * Constructor
    */
-  RMTLD3_reader(const typename R::buffer_t &_buffer, P &_lmem) : R(_buffer), lmem(_lmem), cursor(0){};
+  RMTLD3_reader(const typename R::buffer_t &_buffer, P &_lmem)
+      : R(_buffer), lmem(_lmem), cursor(0){};
 
   /**
    * Resets cursor in the reader
@@ -50,7 +50,8 @@ public:
   void debug() const;
 };
 
-template <typename R, typename P> typename R::buffer_t::error_t RMTLD3_reader<R,P>::reset() {
+template <typename R, typename P>
+typename R::buffer_t::error_t RMTLD3_reader<R, P>::reset() {
 
   cursor = R::bottom;
 
@@ -58,7 +59,7 @@ template <typename R, typename P> typename R::buffer_t::error_t RMTLD3_reader<R,
 }
 
 template <typename R, typename P>
-typename R::buffer_t::error_t RMTLD3_reader<R,P>::set(timespan &t) {
+typename R::buffer_t::error_t RMTLD3_reader<R, P>::set(timespan &t) {
 
   typename R::buffer_t::event_t e;
 
@@ -76,7 +77,8 @@ typename R::buffer_t::error_t RMTLD3_reader<R,P>::set(timespan &t) {
 }
 
 template <typename R, typename P>
-typename R::error_t RMTLD3_reader<R,P>::pull(typename R::buffer_t::event_t &e) {
+typename R::error_t
+RMTLD3_reader<R, P>::pull(typename R::buffer_t::event_t &e) {
 
   typename R::buffer_t::event_t event_next;
 
@@ -95,7 +97,8 @@ typename R::error_t RMTLD3_reader<R,P>::pull(typename R::buffer_t::event_t &e) {
 }
 
 template <typename R, typename P>
-typename R::error_t RMTLD3_reader<R,P>::read(typename R::buffer_t::event_t &e) {
+typename R::error_t
+RMTLD3_reader<R, P>::read(typename R::buffer_t::event_t &e) {
 
   return (R::buffer.read(e, cursor) == R::buffer.OK) ? R::AVAILABLE
                                                      : R::UNAVAILABLE;
@@ -103,7 +106,7 @@ typename R::error_t RMTLD3_reader<R,P>::read(typename R::buffer_t::event_t &e) {
 
 template <typename R, typename P>
 typename R::error_t
-RMTLD3_reader<R,P>::read_next(typename R::buffer_t::event_t &e) {
+RMTLD3_reader<R, P>::read_next(typename R::buffer_t::event_t &e) {
 
   return ((length() > 1 &&
            (R::buffer.read(e, (size_t)(cursor + 1) % (R::buffer.size + 0))) ==
@@ -114,7 +117,7 @@ RMTLD3_reader<R,P>::read_next(typename R::buffer_t::event_t &e) {
 
 template <typename R, typename P>
 typename R::error_t
-RMTLD3_reader<R,P>::read_previous(typename R::buffer_t::event_t &e) {
+RMTLD3_reader<R, P>::read_previous(typename R::buffer_t::event_t &e) {
 
   DEBUGV_RMTLD3("consumed=%d available=%d total=%d\n", consumed(), length(),
                 R::length());
@@ -125,16 +128,16 @@ RMTLD3_reader<R,P>::read_previous(typename R::buffer_t::event_t &e) {
              : R::UNAVAILABLE;
 }
 
-template <typename R, typename P> size_t RMTLD3_reader<R,P>::length() const {
+template <typename R, typename P> size_t RMTLD3_reader<R, P>::length() const {
   return (R::top >= cursor) ? R::top - cursor
                             : (R::buffer.size + 1) - (cursor - R::top);
 }
 
-template <typename R, typename P> size_t RMTLD3_reader<R,P>::consumed() const {
+template <typename R, typename P> size_t RMTLD3_reader<R, P>::consumed() const {
   return R::length() - length();
 }
 
-template <typename R, typename P> void RMTLD3_reader<R,P>::debug() const {
+template <typename R, typename P> void RMTLD3_reader<R, P>::debug() const {
 
   typename R::buffer_t::event_t e;
   for (int i = 0; i < R::buffer.size; i++) {

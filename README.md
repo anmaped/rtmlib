@@ -1,27 +1,38 @@
-# rtmlib v0.2
+# rtmlib 2
 
 [![Build Status](https://travis-ci.org/anmaped/rtmlib.svg?branch=v0.2)](https://travis-ci.org/anmaped/rtmlib)
 
 ## Description
 
-The RunTime embedded Monitoring Library (rtmlib) has been initially developed for runtime monitoring of real-time embedded systems either for ARM and X86 platforms. rtmlib is a lean library that supports atomic operations on shared memory circular buffers and implements a monitor abstraction layer for infinite sequences of time-stamped symbols or events. This library is used to implement different monitoring architectures such as the ones proposed in [1] and [2]. Other efficient architectures can be deployed based on lock-free push, pull, pop primitives over inifnite trace sequences containing time-stamped events. The synchronization primitives for push, pull and pop operations allow different readers and writers to progress asynchronously over the instantiated circular buffers and to synchronize when required. Indeed, the rtmlib solves the lock-free producer-consumer problem for circular buffer-based FIFO queues where readers are consumers and writers are producers.
+The RunTime embedded Monitoring Library (rtmlib) has been initially developed for runtime monitoring of real-time embedded systems either for ARM and X86 platforms. rtmlib is a lean library that supports atomic operations on shared memory circular buffers and implements a monitor abstraction layer for infinite sequences of time-stamped symbols or events. This library is used to implement different monitoring architectures such as the ones proposed in [1] and [2]. Other efficient architectures can be deployed based on lock-free push, pull, and pop primitives over infinite trace sequences containing time-stamped events. The synchronization primitives for push, pull, and pop operations allow different readers and writers to progress asynchronously over the instantiated circular buffers and to synchronize when required. Indeed, the rtmlib solves the lock-free producer-consumer problem for circular buffer-based FIFO queues where readers are consumers and writers are producers.
 
-The rtmlibv0.2 is not just an improved version of rtmlibv0.1 but is also a library that supports hardware synthesis via Vivado HLS tool. The rtmlib can support software and hardware monitoring via dedicated CPU and FPGA devices. The figure Hybrid Overview show our new approach.
+The rtmlibv0.2 is not just an improved version of rtmlibv0.1 but is also a library that supports hardware synthesis via Vivado HLS tool. The rtmlib can support software and hardware monitoring via dedicated CPU and FPGA devices.
+
+The figure Hybrid Overview shows our new approach.
 
 ![hybrid overview](doc/images/hybrid_overview.png)
 
 rtmlib has a direct connection with the rmtld3synth tool as a monitor integration layer. rmtld3synth is a tool that can generate cpp11 monitors and can be implemented in software or hardware.
 
 
-## How to use rtmlib?
+## How to use rtmlib 2?
 
 See [https://anmaped.github.io/rtmlib/doc/](https://anmaped.github.io/rtmlib/doc/) for more details.
 
-### Run rtmlibv0.2 examples
+### Run rtmlib 2 examples
 
 See `examples` folder for more details.
 
-### Run rtmlibv0.2 tests
+### Run rtmlib 2 tests
+
+#### Container (recommended)
+
+Build and run tests with
+```
+podman build -f Containerfile -t rtmlib-test-img .
+```
+
+#### Local
 
 Use the `make` command to build the unit tests.
 ```

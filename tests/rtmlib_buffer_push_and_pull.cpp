@@ -6,6 +6,8 @@
 
 #include <circularbuffer.h>
 
+extern "C" int rtmlib_buffer_push_and_pull();
+
 int rtmlib_buffer_push_and_pull() {
 
   RTML_buffer<Event<int>, 100> buf;

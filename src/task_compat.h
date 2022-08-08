@@ -22,36 +22,45 @@
 #ifndef _TASK_COMPAT_H_
 #define _TASK_COMPAT_H_
 
+#ifdef __NUTTX__
 #include <errno.h>
 #include <pthread.h>
 #include <sys/types.h>
+#define STACK_SIZE 6000
+#elif defined(__FREERTOS__)
+#include <FreeRTOS_POSIX.h>
+#include <FreeRTOS_POSIX/errno.h>
+#include <FreeRTOS_POSIX/pthread.h>
+#include <FreeRTOS_POSIX/sys/types.h>
+#include <FreeRTOS_POSIX/time.h>
+#define STACK_SIZE 6000
+#else
+#include <errno.h>
+#include <pthread.h>
+#include <sys/types.h>
+#define STACK_SIZE 1000000
+#endif
 
 #include "debug_compat.h"
 #include "time_compat.h"
-
-#ifdef __NUTTX__
-#define STACK_SIZE 6000
-#elif defined(__x86__) || defined(__x86_64__)
-#define STACK_SIZE 1000000
-#endif
 
 #define P_OK 0
 
 #define pcheck(val)                                                            \
   if (val != P_OK) {                                                           \
-    ::printf("Error: %d\n", val);                                              \
+    DEBUGV("Error: %d\n", val);                                                \
     return val;                                                                \
   }
 
 #define pcheck_print(val, checkval, extra_action)                              \
   if (val != checkval) {                                                       \
-    ::printf("Error: %d\n", val);                                              \
+    DEBUGV("Error: %d\n", val);                                                \
     extra_action                                                               \
   }
 
 #define pcheck_attr(val, attr)                                                 \
   if (val != P_OK) {                                                           \
-    ::printf("Destroying ERROR:%d\n", val);                                    \
+    DEBUGV("Destroying ERROR:%d\n", val);                                      \
     pthread_attr_destroy(attr);                                                \
     return val;                                                                \
   }
@@ -85,7 +94,9 @@ struct task {
     pthread_attr_t attribute = {0};
     struct sched_param parameter;
 
-    DEBUGV("Task %s started!\n", tid);
+    DEBUGV("#Task(%s) creation sizeof(pthread_mutex_t)=%d "
+           "sizeof(pthread_cond_t)=%d ",
+           tid, sizeof(pthread_mutex_t), sizeof(pthread_cond_t));
 
     pcheck(pthread_attr_init(&attribute));
 
@@ -93,9 +104,9 @@ struct task {
                 &attribute);
 
     pcheck_attr(pthread_attr_setstacksize(&attribute, stack_size), &attribute);
-    DEBUGV("Stack:%d\n", stack_size);
+    DEBUGV_APPEND("stack=%u ", stack_size);
 
-    DEBUGV("Priority:%d\n", priority);
+    DEBUGV_APPEND("priority=%u", priority);
     parameter.sched_priority = priority;
 
     pcheck_attr(pthread_attr_setschedparam(&attribute, &parameter), &attribute);
@@ -104,7 +115,10 @@ struct task {
 
     pcheck(pthread_attr_destroy(&attribute));
 
+    DEBUGV_APPEND("\n");
+
     running = true;
+    st = RUNNING;
 
     return 0;
   }
@@ -118,40 +132,48 @@ struct task {
           struct task *ttask = (struct task *)tsk;
           struct timespec now = {0}, next = {0}, tmp = {0};
 
+          DEBUGV("#Task(%s) is running ...\n", ttask->tid);
+
           // Mutex and conditional variables for pthread_cond_timedwait
           pcheck_print(pthread_mutex_init(&ttask->fmtx, NULL), P_OK,
                        return NULL;);
           pcheck_print(pthread_cond_init(&ttask->cond, NULL), P_OK,
                        return NULL;);
 
+          // initialize the current gettime after task initalization
           clock_gettime(CLOCK_REALTIME, &next);
 
           for (;;) {
 
-            DEBUGV3("#loop+_%s\n", ttask->tid);
+            DEBUGV3("#Task(%s) job: ", ttask->tid);
 
             clock_gettime(CLOCK_REALTIME, &now);
 
+            DEBUGV3_APPEND("sizeof(struct timespec)=0x%x job_time%lus.%luns ",
+                           sizeof(struct timespec), L(now.tv_sec), now.tv_nsec);
+
+            DEBUGV3_APPEND("period=%luus ", ttask->period);
+
             // convert useconds_t to struct timespec
-            struct timespec spec_p;
+            useconds_t2timespec(&ttask->period, &tmp);
 
-            DEBUGV3("useconds: %lu\n", ttask->period);
+            DEBUGV3_APPEND("period=%lus.%luns ", L(tmp.tv_sec), tmp.tv_nsec);
+            DEBUGV3_APPEND("old_next=%lus.%luns ", L(next.tv_sec),
+                           next.tv_nsec);
 
-            useconds_t2timespec(&ttask->period, &spec_p);
+            // calculate new next task wake up
+            timespecadd(&next, &tmp, &next);
 
-            DEBUGV3("timespecp: %lu,%lu\n", spec_p.tv_sec, spec_p.tv_nsec);
-            DEBUGV3("timespec: %lu,%lu\n", next.tv_sec, next.tv_nsec);
+            DEBUGV3_APPEND("new_next=%lus.%luns ", L(next.tv_sec),
+                           next.tv_nsec);
+            DEBUGV3_APPEND("\n");
 
-            timespecadd(&next, &spec_p, &next);
-
-            DEBUGV3("timespec2: %lu,%lu\n", next.tv_sec, next.tv_nsec);
-            DEBUGV3("timespecnow: %lu,%lu\n", now.tv_sec, now.tv_nsec);
-
+            // check if task is missing its deadlines
             if (timespeccmp(&now, &next, >)) {
 
               timespecsub(&next, &now, &tmp);
-              DEBUGV_ERROR("Task is missing their deadline for %lu s.%lu ns\n",
-                           tmp.tv_sec, tmp.tv_nsec);
+              DEBUGV_ERROR("#T(%s): missing its deadline in %lus.%luns\n",
+                           ttask->tid, L(tmp.tv_sec), tmp.tv_nsec);
             }
 
             pthread_mutex_lock(&ttask->fmtx);
@@ -164,6 +186,7 @@ struct task {
 
             if (ttask->st == ABORT) {
               ttask->running = false;
+              ttask->st = ABORTED;
               return NULL;
             }
           }

@@ -22,9 +22,6 @@
 #ifndef _RTML_CIRCULARBUFFER_H_
 #define _RTML_CIRCULARBUFFER_H_
 
-#include <stdio.h>
-//#include <time.h>
-
 #include "debug_compat.h"
 #include "event.h"
 
@@ -145,7 +142,7 @@ public:
   error_t state(size_t &, size_t &, timespanw &) const;
 
   /**
-   * Get the length of the buffer 
+   * Get the length of the buffer
    */
   size_t length() const;
 
@@ -174,7 +171,7 @@ RTML_buffer<T, N>::push(const event_t &node) {
 
   DEBUGV3("push-> %d (%d,%d) r:%d\n", length(), _bottom(), _top(), p);
 
-  return (p) ? OVERFLOW : ((writer)? UNSAFE : OK);
+  return (p) ? OVERFLOW : ((writer) ? UNSAFE : OK);
 }
 
 template <typename T, size_t N>
@@ -188,7 +185,7 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pull(event_t &event) {
   DEBUGV3("pull-> %d (%d,%d) r:%d e:%d\n", length(), _bottom(), _top(), c,
           event.getTime());
 
-  return c ? ((writer)? UNSAFE : OK) : EMPTY;
+  return c ? ((writer) ? UNSAFE : OK) : EMPTY;
 }
 
 template <typename T, size_t N>
@@ -206,22 +203,22 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(event_t &event) {
   DEBUGV3("pop-> %d (%d,%d) r:%d e:%d\n", length(), _bottom(), _top(), c,
           event.getTime());
 
-  return c ? ((writer)? UNSAFE : OK) : EMPTY;
+  return c ? ((writer) ? UNSAFE : OK) : EMPTY;
 }
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
 RTML_buffer<T, N>::read(event_t &event, size_t index) const {
-  if(index < N + 1)
+  if (index < N + 1)
     event = array[index];
 
   return index < N + 1 ? OK : OUT_OF_BOUND;
 }
 
 template <typename T, size_t N>
-typename RTML_buffer<T, N>::error_t
-RTML_buffer<T, N>::write(event_t &event, size_t index) {
-  if(index < N + 1)
+typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::write(event_t &event,
+                                                             size_t index) {
+  if (index < N + 1)
     array[index] = event;
 
   return index < N + 1 ? OK : OUT_OF_BOUND;
@@ -230,29 +227,35 @@ RTML_buffer<T, N>::write(event_t &event, size_t index) {
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
 RTML_buffer<T, N>::state(size_t &b, size_t &t, timespanw &ts) const {
-  ATOMIC_TRIPLE(b,t,ts);
+  ATOMIC_TRIPLE(b, t, ts);
+
+  DEBUGV3("timestamp=[0x%x,0x%x] b=0x%x t=0x%x\n", L(ts >> 32), L(ts), b, t);
 
   return OK;
 }
 
 template <typename T, size_t N> size_t RTML_buffer<T, N>::length() const {
-  size_t b,t;
+  size_t b, t;
   timespanw ts;
   state(b, t, ts);
   return (t >= b) ? t - b : (N + 1) - (b - t);
-  /*   return (_top() >= _bottom()) ? _top() - _bottom() : (N + 1) - (_bottom() - _top()); */
 }
 
 template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
-  size_t b,t;
+  size_t b, t;
   timespanw ts;
   state(b, t, ts);
 
-  DEBUGV3("[STATE] bottom:%lu top:%lu timestamp:%lu\n", b, t, ts);
+  DEBUGV3(
+      "[STATE] bottom=0x%x top=0x%x timestamp=[0x%x,0x%x] timestamp=%luns\n", b,
+      t, L(ts >> 32), L(ts), L(ts));
 
-  DEBUGV3("[CONTENT] ");
-  for (unsigned int idx = 0; idx < N + 1; idx++)
+  DEBUGV3("[CONTENT]");
+  for (unsigned int idx = 0; idx < N + 1; idx++) {
+    if (idx % 2 == 0)
+      DEBUGV3_APPEND("\n");
     array[idx].debug();
+  }
 
   DEBUGV3_APPEND("\n");
 }

@@ -110,7 +110,7 @@ MAIN_TEST_FILE+=int $(PREFIX_MAIN)main(void) { \n
 MAIN_TEST_FILE+=$(UART_INIT)
 MAIN_TEST_FILE+=printf(\"$(WELCOME_MSG)\"); \n
 MAIN_TEST_FILE+=$(patsubst %, %();\n, $(SOURCES))
-MAIN_TEST_FILE+=while(1){  };
+#MAIN_TEST_FILE+=while(1){  };
 MAIN_TEST_FILE+=return 0; \n}
 
 # create .c file to compile available source code tests

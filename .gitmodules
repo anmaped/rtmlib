@@ -1,0 +1,12 @@
+[submodule "thirdparty/cmsis_5"]
+	path = thirdparty/cmsis_5
+	url = https://github.com/ARM-software/CMSIS_5.git
+	shallow = true
+[submodule "thirdparty/freertos-kernel"]
+	path = thirdparty/freertos-kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-kernel.git
+	shallow = true
+[submodule "thirdparty/freertos-posix"]
+	path = thirdparty/freertos-posix
+	url = https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git
+	shallow = true

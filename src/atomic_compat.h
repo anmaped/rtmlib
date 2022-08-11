@@ -1,7 +1,7 @@
 /*
  *  rtmlib is a Real-Time Monitoring Library.
  *
- *    Copyright (C) 2018-2020 André Pedro
+ *    Copyright (C) 2018-2022 André Pedro
  *
  *  This file is part of rtmlib.
  *

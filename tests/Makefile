@@ -1,3 +1,23 @@
+#
+#  rtmlib is a Real-Time Monitoring Library.
+#
+#    Copyright (C) 2018-2022 André Pedro
+#
+#  This file is part of rtmlib.
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 SRC_DIR := .
 OBJ_DIR := output
@@ -8,8 +28,16 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp' | sed -r "s/.+\/(.+)\..+/\1/"
 
 $(shell mkdir -p $(OBJ_DIR))
 
+# MAIN_TEST_FILE
+PREAMBLE:=
+MAIN_PREAMBLE:=
+MAIN_EPILOGUE:=
+EPILOGUE:=
+
 # Debug Flags
 #DEBUGFLAGS=-DDEBUG=3
+
+ifneq (,$(filter x$(ARCH),x xx86 xx86_64))
 
 # __x86__ (including __x86_64__) Flags
 PREF := 
@@ -17,6 +45,8 @@ CFLAGS = -std=c11
 CXXFLAGS := -std=c++11
 CPPFLAGS := -mcx16 -I../src/ ${DEBUGFLAGS} # -mcx16 flag is required for gcc versions <7
 LDFLAGS := -pthread -latomic
+
+endif
 
 # arm (cortex-m4) Flags
 ifeq ($(ARCH),arm)
@@ -51,16 +81,16 @@ $(eval $(shell make -f os/freertos/arm/Makefile print-INCLUDE_DIRS FREERTOS_ROOT
 		WELCOME_MSG:=Welcome from ARMCM4 with FreeRTOS! \\\n
 		CPPFLAGS += -ffreestanding \
 			-D__FREERTOS__ \
-			-I/rtmlib/freertos-posix/include \
-			-I/rtmlib/freertos-posix/include/private \
-			-I/rtmlib/freertos-posix/FreeRTOS-Plus-POSIX/include \
-			-I/rtmlib/freertos-posix/FreeRTOS-Plus-POSIX/include/portable \
-			-I/rtmlib/freertos-posix/FreeRTOS-Plus-POSIX/include/portable/st/stm32l475_discovery \
+			-I$(OS_PATH)/../freertos-posix/include \
+			-I$(OS_PATH)/../freertos-posix/include/private \
+			-I$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/include \
+			-I$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/include/portable \
+			-I$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/include/portable/st/stm32l475_discovery \
 			-DconfigUSE_POSIX_ERRNO=1 \
 			-DconfigUSE_APPLICATION_TASK_TAG=1 \
 			$(INCLUDE_DIRS)
 		
-		SRC_DIR__:=/rtmlib/freertos-posix/FreeRTOS-Plus-POSIX/source
+		SRC_DIR__:=$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/source
 		SRC_FILES__ := $(wildcard $(SRC_DIR__)/*.c)
 		OBJ_FILES__ := $(patsubst $(SRC_DIR__)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES__))
 
@@ -77,14 +107,25 @@ $(eval $(shell make -f os/freertos/arm/Makefile print-INCLUDE_DIRS FREERTOS_ROOT
 	#
 	# enable mps2 uart (mps2-an386)
 	#
-	#UART_INIT_BODY+=\#include \"uart_pl011.h\" \n
-	UART_INIT_BODY+=\#define UART0_ADDRESS 	( 0x40004000UL ) \n
-	UART_INIT_BODY+=\#define UART0_CTRL		( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 8UL ) ) ) ) \n
-	UART_INIT_BODY+=\#define UART0_BAUDDIV	( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 16UL ) ) ) ) \n
-	UART_INIT_BODY+=\#define uart_init void _ () { UART0_BAUDDIV = 16;  UART0_CTRL = 1; }; _ \n
-	UART_INIT+=uart_init(); \n
-	#UART_INIT+=uart_putchar('f'); \n
-	#UART_INIT+=uart_putchar('\\\n'); \n
+	#PREAMBLE+=\#include \"uart_pl011.h\" \n
+	PREAMBLE+=\#define UART0_ADDRESS 	( 0x40004000UL ) \n
+	PREAMBLE+=\#define UART0_CTRL		( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 8UL ) ) ) ) \n
+	PREAMBLE+=\#define UART0_BAUDDIV	( * ( ( ( volatile uint32_t * )( UART0_ADDRESS + 16UL ) ) ) ) \n
+	PREAMBLE+=\#define uart_init void _ () { UART0_BAUDDIV = 16;  UART0_CTRL = 1; }; _ \n
+	
+	MAIN_PREAMBLE+=uart_init(); \n
+	MAIN_PREAMBLE+=printf(\"$(WELCOME_MSG)\"); \n
+	#MAIN_PREAMBLE+=uart_putchar('f'); \n
+	#MAIN_PREAMBLE+=uart_putchar('\\\n'); \n
+
+	# close qemu
+	MAIN_EPILOGUE+=register int r0 __asm__(\"r0\"); \n
+	MAIN_EPILOGUE+=r0 = 0x18; \n
+	MAIN_EPILOGUE+=register int r1 __asm__(\"r1\"); \n
+	MAIN_EPILOGUE+=r1 = 0x20026; \n
+	MAIN_EPILOGUE+=__asm__ volatile(\"bkpt \#0xAB\"); \n
+
+	EPILOGUE:=
 
 endif
 
@@ -95,7 +136,7 @@ ifeq ($(ARCH),aarch64)
 	CXXFLAGS := -std=c++11
 	CPPFLAGS := -I../src/ ${DEBUGFLAGS}
 	LDFLAGS := 
-	OBJ_FILES += $(SRC_DIR)/stub.o
+	OBJ_FILES +=  $(OBJ_DIR)/uart_pl011.o $(SRC_DIR)/stub.o
 endif
 
 CC := $(PREF)gcc
@@ -103,15 +144,15 @@ CPP := $(PREF)g++
 
 
 # generate .c file to join source code tests
-MAIN_TEST_FILE:=$(patsubst %, extern int %(); \n, $(SOURCES))
-MAIN_TEST_FILE+=\#include <stdio.h> \n
-MAIN_TEST_FILE+=$(UART_INIT_BODY)
+MAIN_TEST_FILE:=\#include <stdio.h> \n
+MAIN_TEST_FILE+=$(patsubst %,extern int %(); \n, $(SOURCES))
+MAIN_TEST_FILE+=$(PREAMBLE)
 MAIN_TEST_FILE+=int $(PREFIX_MAIN)main(void) { \n
-MAIN_TEST_FILE+=$(UART_INIT)
-MAIN_TEST_FILE+=printf(\"$(WELCOME_MSG)\"); \n
-MAIN_TEST_FILE+=$(patsubst %, %();\n, $(SOURCES))
-#MAIN_TEST_FILE+=while(1){  };
+MAIN_TEST_FILE+=$(MAIN_PREAMBLE)
+MAIN_TEST_FILE+=$(patsubst %,%();\n, $(SOURCES))
+MAIN_TEST_FILE+=$(MAIN_EPILOGUE)
 MAIN_TEST_FILE+=return 0; \n}
+MAIN_TEST_FILE+=$(EPILOGUE)
 
 # create .c file to compile available source code tests
 OUT := $(shell [ ! -f $(OBJ_DIR)/unittests.c ] && printf "$(MAIN_TEST_FILE)" > $(OBJ_DIR)/unittests.c)

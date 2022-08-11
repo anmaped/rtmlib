@@ -26,6 +26,12 @@ static void uart_print(const char *s) {
 
 void main(void) {
   uart_print("Hello, World!\n");
-  while (1)
-    ;
+
+  /* exit qemu */
+  register int r0 __asm__("r0");
+  r0 = 0x18;
+  register int r1 __asm__("r1");
+  r1 = 0x20026;
+  __asm__ volatile("bkpt #0xAB");
+
 }

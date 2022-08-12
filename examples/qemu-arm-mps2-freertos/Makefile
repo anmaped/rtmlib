@@ -1,15 +1,11 @@
 OUTPUT_DIR := ./output
-IMAGE := RTOSDemo.out
-SUB_MAKEFILE_DIR = ./library-makefiles
+IMAGE := qemu-mps2-freertos.elf
 
-# The directory that contains the /source and /demo sub directories.
-FREERTOS_ROOT = ./../../../../
+$(shell mkdir -p $(OUTPUT_DIR))
 
 CC = arm-none-eabi-gcc
 LD = arm-none-eabi-gcc
 SIZE = arm-none-eabi-size
-MAKE = make
-
 
 CFLAGS += $(INCLUDE_DIRS) -nostartfiles -ffreestanding -mthumb -mcpu=cortex-m3 \
 		  -Wall -Wextra -g3 -O0 -ffunction-sections -fdata-sections \
@@ -18,7 +14,7 @@ CFLAGS += $(INCLUDE_DIRS) -nostartfiles -ffreestanding -mthumb -mcpu=cortex-m3 \
 #
 # Kernel build.
 #
-KERNEL_DIR = $(FREERTOS_ROOT)/Source
+KERNEL_DIR = ./../../thirdparty/freertos-kernel
 KERNEL_PORT_DIR += $(KERNEL_DIR)/portable/GCC/ARM_CM3
 INCLUDE_DIRS += -I$(KERNEL_DIR)/include \
 				-I$(KERNEL_PORT_DIR)
@@ -33,51 +29,16 @@ SOURCE_FILES += $(KERNEL_DIR)/portable/MemMang/heap_4.c
 SOURCE_FILES += $(KERNEL_DIR)/portable/GCC/ARM_CM3/port.c
 
 #
-# Common demo files for the "full" build, as opposed to the "blinky" build - 
-# these files are build by all the FreeRTOS kernel demos.
-#
-DEMO_ROOT = $(FREERTOS_ROOT)/Demo
-COMMON_DEMO_FILES = $(DEMO_ROOT)/Common/Minimal
-INCLUDE_DIRS += -I$(DEMO_ROOT)/Common/include
-VPATH += $(COMMON_DEMO_FILES)
-SOURCE_FILES += (COMMON_DEMO_FILES)/AbortDelay.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/BlockQ.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/blocktim.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/countsem.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/death.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/dynamic.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/EventGroupsDemo.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/GenQTest.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/integer.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/IntQueue.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/IntQueueTimer.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/IntSemTest.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/MessageBufferAMP.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/MessageBufferDemo.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/PollQ.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/QPeek.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/QueueOverwrite.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/QueueSet.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/QueueSetPolling.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/recmutex.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/semtest.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/StaticAllocation.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/StreamBufferDemo.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/StreamBufferInterrupt.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/TaskNotify.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/TaskNotifyArray.c
-SOURCE_FILES += (COMMON_DEMO_FILES)/TimerDemo.c
-
-#
 # Application entry point.  main_blinky is self contained.  main_full builds
 # the above common demo (and test) files too.
 #
-DEMO_PROJECT = $(DEMO_ROOT)/CORTEX_MPS2_QEMU_IAR_GCC
+DEMO_PROJECT = .
 VPATH += $(DEMO_PROJECT)
 INCLUDE_DIRS += -I$(DEMO_PROJECT) -I$(DEMO_PROJECT)/CMSIS
 SOURCE_FILES += (DEMO_PROJECT)/main.c
 SOURCE_FILES += (DEMO_PROJECT)/main_blinky.c
-SOURCE_FILES += (DEMO_PROJECT)/main_full.c
+SOURCE_FILES += (DEMO_PROJECT)/IntQueueTimer.c
+SOURCE_FILES += (DEMO_PROJECT)/IntQueue.c
 SOURCE_FILES += ./startup_gcc.c
 # Lightweight print formatting to use in place of the heavier GCC equivalent.
 SOURCE_FILES += ./printf-stdarg.c

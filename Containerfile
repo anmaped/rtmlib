@@ -100,8 +100,6 @@ RUN arm-none-eabi-ld --verbose
 #RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
 COPY . /rtmlib
-RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
-#
 
 #RUN mkdir /rtmlib
 #RUN git clone --depth 1 https://github.com/ARM-software/CMSIS_5.git /rtmlib/thirdparty/cmsis_5
@@ -128,21 +126,38 @@ RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -seria
 # with FreeRTOS
 
 # freertos demo without rtmlib
-#RUN cd /rtmlib/thirdparty/freertos/FreeRTOS/Demo/CORTEX_MPS2_QEMU_IAR_GCC/build/gcc/ && CFLAGS=-DINCLUDE_xTaskGetCurrentTaskHandle=1 make
-#RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -kernel /rtmlib/thirdparty/freertos/FreeRTOS/Demo/CORTEX_MPS2_QEMU_IAR_GCC/build/gcc/output/RTOSDemo.out
+RUN cd /rtmlib/examples/qemu-arm-mps2-freertos && make
+#RUN qemu-system-arm \
+#    -M mps2-an386 \
+#    -cpu cortex-m4 \
+#    -monitor none \
+#    -nographic \
+#    -serial stdio \
+#    -kernel /rtmlib/examples/qemu-arm-mps2-freertos/output/qemu-mps2-freertos.elf
 
-RUN cp /rtmlib/tests/os/freertos/arm/*.c /rtmlib/thirdparty/freertos/FreeRTOS/Demo/CORTEX_MPS2_QEMU_IAR_GCC
-RUN cd /rtmlib/tests && make clean && make ARCH=arm OS=freertos OS_PATH=/rtmlib/thirdparty/freertos CMSIS=/rtmlib/thirdparty/cmsis_5 OBJ_DIR=out
+# freertos demo with rtmlib
+RUN cp /rtmlib/tests/os/freertos/arm/*.c /rtmlib/examples/qemu-arm-mps2-freertos
+RUN cd /rtmlib/tests && make clean && make ARCH=arm OS=freertos OS_PATH=/rtmlib/thirdparty/freertos-kernel CMSIS=/rtmlib/thirdparty/cmsis_5 OBJ_DIR=out
 RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -semihosting -kernel /rtmlib/tests/out/rtmlib_unittests.elf
 
 # with NuttX
 # [TODO]
 
 #
-# make and run rtmlib tests with qemu (riscv64)
+# make and run rtmlib tests with qemu (aarch64)
 #
+
+# [TODO]
 
 # without OS
 #RUN cd /rtmlib/tests && make clean && make ARCH=aarch64 OS=none CMSIS=/rtmlib/thirdparty/cmsis_5 OBJ_DIR=out
 
-#RUN cd /rtmlib/tests && make clean && make ARCH=rv64
+
+#
+# make and run rtmlib tests with qemu (riscv64)
+#
+
+# without OS
+
+#RUN cd /rtmlib/tests && make clean && make ARCH=riscv64 OS=none
+#RUN qemu-system-riscv64 

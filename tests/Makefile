@@ -74,9 +74,26 @@ $(error Missing CMSIS!)
 	endif
 
 	ifeq ($(OS),freertos)
-$(eval $(shell make -f os/freertos/arm/Makefile print-VPATH FREERTOS_ROOT=$(OS_PATH)/FreeRTOS OUTPUT_DIR=$(OBJ_DIR)))
-$(eval $(shell make -f os/freertos/arm/Makefile print-OBJS_OUTPUT FREERTOS_ROOT=$(OS_PATH)/FreeRTOS OUTPUT_DIR=$(OBJ_DIR)))
-$(eval $(shell make -f os/freertos/arm/Makefile print-INCLUDE_DIRS FREERTOS_ROOT=$(OS_PATH)/FreeRTOS OUTPUT_DIR=$(OBJ_DIR)))
+$(eval $(shell make \
+	-f $(SRC_DIR)/../examples/qemu-arm-mps2-freertos/Makefile \
+	print-VPATH \
+	KERNEL_DIR=$(SRC_DIR)/../thirdparty/freertos-kernel \
+	DEMO_PROJECT=$(SRC_DIR)/../examples/qemu-arm-mps2-freertos \
+	OUTPUT_DIR=$(OBJ_DIR)))
+
+$(eval $(shell make \
+	-f $(SRC_DIR)/../examples/qemu-arm-mps2-freertos/Makefile \
+	print-OBJS_OUTPUT \
+	KERNEL_DIR=$(SRC_DIR)/../thirdparty/freertos-kernel \
+	DEMO_PROJECT=$(SRC_DIR)/../examples/qemu-arm-mps2-freertos \
+	OUTPUT_DIR=$(OBJ_DIR)))
+
+$(eval $(shell make \
+	-f $(SRC_DIR)/../examples/qemu-arm-mps2-freertos/Makefile \
+	print-INCLUDE_DIRS \
+	KERNEL_DIR=$(SRC_DIR)/../thirdparty/freertos-kernel \
+	DEMO_PROJECT=$(SRC_DIR)/../examples/qemu-arm-mps2-freertos \
+	OUTPUT_DIR=$(OBJ_DIR)))
 
 		WELCOME_MSG:=Welcome from ARMCM4 with FreeRTOS! \\\n
 		CPPFLAGS += -ffreestanding \
@@ -89,18 +106,16 @@ $(eval $(shell make -f os/freertos/arm/Makefile print-INCLUDE_DIRS FREERTOS_ROOT
 			-DconfigUSE_POSIX_ERRNO=1 \
 			-DconfigUSE_APPLICATION_TASK_TAG=1 \
 			$(INCLUDE_DIRS)
-		
+				
 		SRC_DIR__:=$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/source
 		SRC_FILES__ := $(wildcard $(SRC_DIR__)/*.c)
 		OBJ_FILES__ := $(patsubst $(SRC_DIR__)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES__))
 
-		CFLAGS +=  \
-			-DINCLUDE_xTaskGetCurrentTaskHandle=1
-				
+		CFLAGS += 
 		LDFLAGS := -T $(SRC_DIR)/os/freertos/arm/mps2_m3.ld -specs=nano.specs \
 			-specs=nosys.specs -specs=rdimon.specs
 		OBJ_FILES += $(OBJS_OUTPUT) $(OBJ_FILES__)
-		VPATH += $(OS_PATH)/FreeRTOS/Demo/CORTEX_MPS2_QEMU_IAR_GCC/build/gcc/ $(SRC_DIR__)
+		VPATH += $(SRC_DIR)/../examples/qemu-arm-mps2-freertos $(SRC_DIR__)
 		PREFIX_MAIN:=__task_
 	endif
 
@@ -137,6 +152,11 @@ ifeq ($(ARCH),aarch64)
 	CPPFLAGS := -I../src/ ${DEBUGFLAGS}
 	LDFLAGS := 
 	OBJ_FILES +=  $(OBJ_DIR)/uart_pl011.o $(SRC_DIR)/stub.o
+endif
+
+# riscv64 Flags
+ifeq ($(ARCH),riscv64)
+
 endif
 
 CC := $(PREF)gcc

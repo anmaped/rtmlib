@@ -62,14 +62,54 @@ typedef unsigned int uint32_t;
   ts = array[_bottom()].getTime();
 
 /* Software */
-#elif defined(__arm__) || defined(__x86__) || defined(__x86_64__)
+#elif defined(__riscv) || defined(__arm__) || defined(__x86__) ||              \
+    defined(__x86_64__)
+
+/*
+ *
+ * RISC-V 64 atomic macros
+ *
+ */
+#if defined(__riscv)
+
+//#warning "Atomic guarantees on RISC-V are not supported yet!"
+// __riscv_atomic
+
+#include <atomic>
+
+#ifdef NO_THREADS
+#define pthread_yield()
+#elif defined(__FREERTOS__)
+#include <FreeRTOS_POSIX/sched.h>
+#define pthread_yield() (sched_yield())
+#endif
+
+#define NATIVE_POINTER_TYPE uint64_t
+#define NATIVE_ATOMIC_POINTER uint64_t
+
+union page_t {
+  NATIVE_ATOMIC_POINTER wide_uniqueid;
+  struct {
+    NATIVE_POINTER_TYPE stateref;
+  };
+};
+
+#define update(page)                                                           \
+  {                                                                            \
+    page.stateref = (NATIVE_POINTER_TYPE)stateref;                             \
+    page;                                                                      \
+  }
+
+#define DEBUG_FRAME()                                                          \
+  DEBUGV("address:%p content:%p,%lu id:%p\n", &buffer.page,                    \
+         (state_t *)current_page_content.stateref, &state);
 
 /*
  *
  * ARM32 atomic macros
  *
  */
-#if defined(__arm__)
+#elif defined(__arm__)
 
 //#warning "Atomic guarantees on ARM32 are not supported yet!"
 
@@ -97,6 +137,10 @@ union page_t {
     page.stateref = (NATIVE_POINTER_TYPE)stateref;                             \
     page;                                                                      \
   }
+
+#define DEBUG_FRAME()                                                          \
+  DEBUGV("address:%p content:%p,%lu id:%p\n", &buffer.page,                    \
+         (state_t *)current_page_content.stateref, &state);
 
 /*
  *
@@ -136,6 +180,11 @@ union page_t {
     page.stateref = (NATIVE_POINTER_TYPE)stateref;                             \
     page;                                                                      \
   }
+
+#define DEBUG_FRAME()                                                          \
+  DEBUGV("address:%p content:%p,%lu id:%p\n", &buffer.page,                    \
+         (state_t *)current_page_content.stateref,                             \
+         current_page_content.counter, &state);
 
 #endif
 
@@ -213,9 +262,7 @@ union page_t {
     /* copy remaining state */                                                 \
     stateref->event = event;                                                   \
                                                                                \
-    DEBUGV("address:%p content:%p,%lu id:%p\n", &buffer.page,                  \
-           (state_t *)current_page_content.stateref,                           \
-           current_page_content.counter, &state);                              \
+    DEBUG_FRAME();                                                             \
   } while (                                                                    \
       fail = !(std::atomic_compare_exchange_strong(                            \
           &buffer.page, &current_page_content, (update(new_page_content)))));

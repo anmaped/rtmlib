@@ -26,7 +26,7 @@
 #define DEBUG 0
 #endif
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(__riscv)
 #if defined(__FREERTOS__)
 #include <FreeRTOS.h>
 #include <stdarg.h>
@@ -66,7 +66,7 @@ extern "C" int printf(const char *format, ...);
 
 #endif
 
-#elif defined(DEBUG) && DEBUG > 0 && defined(__arm__)
+#elif defined(DEBUG) && DEBUG > 0 && ( defined(__arm__) || defined(__riscv) )
 
 #define DEBUGV_ERROR(fmt, args...)                                             \
   printf("ERROR: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, ##args)
@@ -76,7 +76,7 @@ extern "C" int printf(const char *format, ...);
 
 #define DEBUGV_APPEND(fmt, args...) printf(fmt, ##args)
 
-#if defined(DEBUG) && DEBUG > 2 && defined(__arm__)
+#if defined(DEBUG) && DEBUG > 2 && ( defined(__arm__) || defined(__riscv) )
 
 #define DEBUGV3(fmt, args...)                                                  \
   printf("DEBUG3: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, ##args)

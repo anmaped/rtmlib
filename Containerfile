@@ -38,7 +38,7 @@ RUN git clone -b 2021.04.23 --depth 1 https://github.com/riscv/riscv-gnu-toolcha
 
 RUN mkdir -p /opt/gcc-riscv && \
     cd /tmp/riscv-gnu-toolchain && \
-    ./configure --prefix=/opt/gcc-riscv --enable-gdb --with-cmodel=medany && \
+    ./configure --prefix=/opt/gcc-riscv --enable-gdb --with-cmodel=medany --with-libatomic && \
     make -j $(nproc) && \
     rm -rf /tmp/riscv-gnu-toolchain    
 
@@ -96,10 +96,11 @@ RUN nm -D /usr/lib/x86_64-linux-gnu/libatomic.so.1
 RUN arm-none-eabi-ld --verbose
 
 # get rtmlib from github
-#RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
-#RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
+RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
+RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
 COPY . /rtmlib
+
 
 #RUN mkdir /rtmlib
 #RUN git clone --depth 1 https://github.com/ARM-software/CMSIS_5.git /rtmlib/thirdparty/cmsis_5
@@ -109,7 +110,7 @@ COPY . /rtmlib
 #
 # make and run rtmlib tests (x86)
 #
-#RUN cd /rtmlib/tests && make clean && make ARCH=x86_64 && ./output/rtmlib_unittests
+#RUN cd /rtmlib/tests && make clean && make ARCH=x86_64 BUILD_DIR=build/x86-linux && ./build/x86-linux/rtmlib_unittests
 
 #
 # make and run rtmlib tests with qemu (arm32)
@@ -120,12 +121,12 @@ RUN cd /rtmlib/tests/os/none/arm/minimal-example && ./make.sh
 RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -semihosting -kernel /rtmlib/tests/os/none/arm/minimal-example/test.elf
 
 # without OS
-RUN cd /rtmlib/tests && make clean && make ARCH=arm OS=none CMSIS=/rtmlib/thirdparty/cmsis_5
-RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -semihosting -kernel /rtmlib/tests/output/rtmlib_unittests.elf
+RUN cd /rtmlib/tests && make ARCH=arm OS=none CMSIS=/rtmlib/thirdparty/cmsis_5 BUILD_DIR=build/arm-none
+RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -semihosting -kernel /rtmlib/tests/build/arm-none/rtmlib_unittests.elf
 
 # with FreeRTOS
 
-# freertos demo without rtmlib
+# freertos demo without rtmlib tests
 RUN cd /rtmlib/examples/qemu-arm-mps2-freertos && make
 #RUN qemu-system-arm \
 #    -M mps2-an386 \
@@ -137,8 +138,8 @@ RUN cd /rtmlib/examples/qemu-arm-mps2-freertos && make
 
 # freertos demo with rtmlib
 RUN cp /rtmlib/tests/os/freertos/arm/*.c /rtmlib/examples/qemu-arm-mps2-freertos
-RUN cd /rtmlib/tests && make clean && make ARCH=arm OS=freertos OS_PATH=/rtmlib/thirdparty/freertos-kernel CMSIS=/rtmlib/thirdparty/cmsis_5 OBJ_DIR=out
-RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -semihosting -kernel /rtmlib/tests/out/rtmlib_unittests.elf
+RUN cd /rtmlib/tests && make ARCH=arm OS=freertos OS_PATH=/rtmlib/thirdparty/freertos-kernel CMSIS=/rtmlib/thirdparty/cmsis_5 BUILD_DIR=build/arm-freertos
+RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -serial stdio -semihosting -kernel /rtmlib/tests/build/arm-freertos/rtmlib_unittests.elf
 
 # with NuttX
 # [TODO]
@@ -150,14 +151,16 @@ RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -seria
 # [TODO]
 
 # without OS
-#RUN cd /rtmlib/tests && make clean && make ARCH=aarch64 OS=none CMSIS=/rtmlib/thirdparty/cmsis_5 OBJ_DIR=out
+#RUN cd /rtmlib/tests && make clean && make ARCH=aarch64 OS=none CMSIS=/rtmlib/thirdparty/cmsis_5 BUILD_DIR=out
 
 
 #
 # make and run rtmlib tests with qemu (riscv64)
 #
 
+
 # without OS
 
-#RUN cd /rtmlib/tests && make clean && make ARCH=riscv64 OS=none
-#RUN qemu-system-riscv64 
+RUN riscv64-unknown-elf-gcc -v
+RUN cd /rtmlib/tests && make ARCH=riscv64 OS=none BUILD_DIR=build/riscv-none
+RUN qemu-system-riscv64 -M virt -cpu rv64 -m 512M -smp 2 -monitor none -nographic -serial stdio -kernel /rtmlib/tests/build/riscv-none/rtmlib_unittests.elf

@@ -24,7 +24,7 @@
 
 #include "atomic_compat.h"
 
-#define L(x) (timespan) x
+#define L(x) ((timespan) (x))
 
 #ifdef __HW__
 
@@ -32,6 +32,20 @@ typedef long long timeabs;
 typedef long timespan;
 
 #define clockgettime() 0
+
+/*
+ *
+ * RISC-V time macros
+ *
+ */
+#elif (__riscv)
+
+#include <time.h>
+
+typedef uint64_t timeabs;
+typedef uint32_t timespan;
+
+#define clockgettime() 0 // [TODO]
 
 /*
  *

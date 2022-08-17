@@ -20,13 +20,13 @@
 #
 
 SRC_DIR := .
-OBJ_DIR := output
+BUILD_DIR := output
 SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
-OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
 SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp' | sed -r "s/.+\/(.+)\..+/\1/")
 
-$(shell mkdir -p $(OBJ_DIR))
+$(shell mkdir -p $(BUILD_DIR))
 
 # MAIN_TEST_FILE
 PREAMBLE:=
@@ -55,6 +55,7 @@ ifeq ($(ARCH),arm)
 	CXXFLAGS := -std=c++11
 	CPPFLAGS := -nostartfiles -mcpu=cortex-m4 -I../src/ ${DEBUGFLAGS}
 	EXTENSION := .elf
+	ASFLAGS := -mcpu=cortex-m4
 	
 	ifneq ($(CMSIS),)
 		CPPFLAGS += -I$(CMSIS)/CMSIS/Core/Include/ \
@@ -69,7 +70,7 @@ $(error Missing CMSIS!)
 		WELCOME_MSG:=Welcome from ARMCM4 without OS! \\\n
 		CPPFLAGS += -DNO_THREADS
 		LDFLAGS := -T $(SRC_DIR)/os/none/arm/mps2_m3.ld
-		OBJ_FILES := $(OBJ_DIR)/startup.o $(OBJ_FILES) $(OBJ_DIR)/uart_pl011.o $(OBJ_DIR)/stub.o
+		OBJ_FILES := $(BUILD_DIR)/startup.o $(OBJ_FILES) $(BUILD_DIR)/uart_pl011.o $(BUILD_DIR)/stub.o
 		VPATH += $(SRC_DIR)/os/none/arm
 	endif
 
@@ -79,21 +80,21 @@ $(eval $(shell make \
 	print-VPATH \
 	KERNEL_DIR=$(SRC_DIR)/../thirdparty/freertos-kernel \
 	DEMO_PROJECT=$(SRC_DIR)/../examples/qemu-arm-mps2-freertos \
-	OUTPUT_DIR=$(OBJ_DIR)))
+	OUTPUT_DIR=$(BUILD_DIR)))
 
 $(eval $(shell make \
 	-f $(SRC_DIR)/../examples/qemu-arm-mps2-freertos/Makefile \
 	print-OBJS_OUTPUT \
 	KERNEL_DIR=$(SRC_DIR)/../thirdparty/freertos-kernel \
 	DEMO_PROJECT=$(SRC_DIR)/../examples/qemu-arm-mps2-freertos \
-	OUTPUT_DIR=$(OBJ_DIR)))
+	OUTPUT_DIR=$(BUILD_DIR)))
 
 $(eval $(shell make \
 	-f $(SRC_DIR)/../examples/qemu-arm-mps2-freertos/Makefile \
 	print-INCLUDE_DIRS \
 	KERNEL_DIR=$(SRC_DIR)/../thirdparty/freertos-kernel \
 	DEMO_PROJECT=$(SRC_DIR)/../examples/qemu-arm-mps2-freertos \
-	OUTPUT_DIR=$(OBJ_DIR)))
+	OUTPUT_DIR=$(BUILD_DIR)))
 
 		WELCOME_MSG:=Welcome from ARMCM4 with FreeRTOS! \\\n
 		CPPFLAGS += -ffreestanding \
@@ -109,7 +110,7 @@ $(eval $(shell make \
 				
 		SRC_DIR__:=$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/source
 		SRC_FILES__ := $(wildcard $(SRC_DIR__)/*.c)
-		OBJ_FILES__ := $(patsubst $(SRC_DIR__)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES__))
+		OBJ_FILES__ := $(patsubst $(SRC_DIR__)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES__))
 
 		CFLAGS += 
 		LDFLAGS := -T $(SRC_DIR)/os/freertos/arm/mps2_m3.ld -specs=nano.specs \
@@ -151,16 +152,40 @@ ifeq ($(ARCH),aarch64)
 	CXXFLAGS := -std=c++11
 	CPPFLAGS := -I../src/ ${DEBUGFLAGS}
 	LDFLAGS := 
-	OBJ_FILES +=  $(OBJ_DIR)/uart_pl011.o $(SRC_DIR)/stub.o
+	OBJ_FILES +=  $(BUILD_DIR)/uart_pl011.o $(SRC_DIR)/stub.o
 endif
 
 # riscv64 Flags
 ifeq ($(ARCH),riscv64)
+	PREF := riscv64-unknown-elf-
+	CFLAGS = -std=c11
+	CXXFLAGS := -std=c++11
+	CPPFLAGS := -ffreestanding -nostartfiles -O0 -mcmodel=medany -march=rv64gc -mabi=lp64d -I../src/ ${DEBUGFLAGS}
+	EXTENSION := .elf
 
+	ifeq ($(OS),none)
+		OBJ_FILES += $(SRC_DIR)/os/none/riscv/startup.o $(SRC_DIR)/os/none/riscv/uart.o $(SRC_DIR)/os/none/riscv/target.o
+		LDFLAGS := -T $(SRC_DIR)/os/none/riscv/link.ld
+		ASFLAGS := 
+		CPPFLAGS += -DNO_THREADS -I$(SRC_DIR)/os/none/riscv
+
+		PREAMBLE+=\#include \"uart.h\" \n
+		MAIN_PREAMBLE+=uart_init(); \n
+		#MAIN_PREAMBLE+=print_c('f'); \n
+		#MAIN_PREAMBLE+=print_c('\\\n'); \n
+		MAIN_EPILOGUE+=register int r0 __asm__(\"x5\"); \n
+		MAIN_EPILOGUE+=r0 = 0x5555; \n
+		MAIN_EPILOGUE+=register int r1 __asm__(\"x6\"); \n
+		MAIN_EPILOGUE+=r1 = 0x100000; \n
+		MAIN_EPILOGUE+=__asm__ volatile(\"sw x5, 0(x6)\"); \n
+
+		VPATH += $(SRC_DIR)/os/none/riscv
+	endif
 endif
 
 CC := $(PREF)gcc
 CPP := $(PREF)g++
+AS := $(PREF)as
 
 
 # generate .c file to join source code tests
@@ -175,19 +200,19 @@ MAIN_TEST_FILE+=return 0; \n}
 MAIN_TEST_FILE+=$(EPILOGUE)
 
 # create .c file to compile available source code tests
-OUT := $(shell [ ! -f $(OBJ_DIR)/unittests.c ] && printf "$(MAIN_TEST_FILE)" > $(OBJ_DIR)/unittests.c)
+OUT := $(shell [ ! -f $(BUILD_DIR)/unittests.c ] && printf "$(MAIN_TEST_FILE)" > $(BUILD_DIR)/unittests.c)
 
-$(OBJ_DIR)/rtmlib_unittests$(EXTENSION): $(OBJ_FILES) $(OBJ_DIR)/unittests.o
+$(BUILD_DIR)/rtmlib_unittests$(EXTENSION): $(OBJ_FILES) $(BUILD_DIR)/unittests.o
 	${CPP} $(LDFLAGS) $(CPPFLAGS) $^ -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	${CPP} $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/%.o: %.c
+$(BUILD_DIR)/%.o: %.c
 	${CC} $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.S
-	$(PREF)as -c -mcpu=cortex-m4 -o $@ $<
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
+	$(AS) -c $(ASFLAGS) -o $@ $<
 
 clean:
 	rm -rf output

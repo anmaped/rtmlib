@@ -10,3 +10,11 @@
 	path = thirdparty/freertos-posix
 	url = https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git
 	shallow = true
+[submodule "thirdparty/nuttx"]
+	path = thirdparty/nuttx
+	url = https://github.com/apache/incubator-nuttx.git
+	shallow = true
+[submodule "thirdparty/nuttx-apps"]
+	path = thirdparty/nuttx-apps
+	url = https://github.com/apache/incubator-nuttx-apps.git
+	shallow = true

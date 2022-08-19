@@ -203,7 +203,7 @@ MAIN_TEST_FILE+=$(EPILOGUE)
 OUT := $(shell [ ! -f $(BUILD_DIR)/unittests.c ] && printf "$(MAIN_TEST_FILE)" > $(BUILD_DIR)/unittests.c)
 
 $(BUILD_DIR)/rtmlib_unittests$(EXTENSION): $(OBJ_FILES) $(BUILD_DIR)/unittests.o
-	${CPP} $(LDFLAGS) $(CPPFLAGS) $^ -o $@
+	${CPP} $(CPPFLAGS) $^ -o $@ $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	${CPP} $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

@@ -91,26 +91,24 @@ RUN qemu-system-riscv64 --version
 # check gcc version
 RUN g++ --version
 
-RUN nm -D /usr/lib/x86_64-linux-gnu/libatomic.so.1
-
-RUN arm-none-eabi-ld --verbose
-
 # get rtmlib from github
 RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
 RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
 COPY . /rtmlib
+RUN cd /rtmlib/thirdparty \
+    && rm -r /rtmlib/thirdparty/nuttx \
+    && git clone https://github.com/apache/incubator-nuttx.git nuttx
+RUN cd /rtmlib/thirdparty \
+    && git clone https://github.com/apache/incubator-nuttx-apps.git nuttx-apps
 
-
-#RUN mkdir /rtmlib
-#RUN git clone --depth 1 https://github.com/ARM-software/CMSIS_5.git /rtmlib/thirdparty/cmsis_5
-#RUN git clone --branch 202112.00 --depth 1 --recurse-submodules https://github.com/FreeRTOS/FreeRTOS.git /rtmlib/freertos
-#RUN git clone --depth 1 --recurse-submodules https://github.com/FreeRTOS/Lab-Project-FreeRTOS-POSIX.git /rtmlib/freertos-posix
+# make examples
+RUN cd /rtmlib/examples && make
 
 #
 # make and run rtmlib tests (x86)
 #
-#RUN cd /rtmlib/tests && make clean && make ARCH=x86_64 BUILD_DIR=build/x86-linux && ./build/x86-linux/rtmlib_unittests
+RUN cd /rtmlib/tests && make clean && make ARCH=x86_64 BUILD_DIR=build/x86-linux && ./build/x86-linux/rtmlib_unittests
 
 #
 # make and run rtmlib tests with qemu (arm32)
@@ -164,3 +162,22 @@ RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -seria
 RUN riscv64-unknown-elf-gcc -v
 RUN cd /rtmlib/tests && make ARCH=riscv64 OS=none BUILD_DIR=build/riscv-none
 RUN qemu-system-riscv64 -M virt -cpu rv64 -m 512M -smp 2 -monitor none -nographic -serial stdio -kernel /rtmlib/tests/build/riscv-none/rtmlib_unittests.elf
+
+# with NuttX
+RUN apt install -y \
+    kconfig-frontends \
+    genromfs \
+    xxd
+
+#RUN cd /rtmlib/thirdparty \
+#    && git clone https://github.com/apache/incubator-nuttx.git nuttx \
+#    && git clone https://github.com/apache/incubator-nuttx-apps.git nuttx-apps
+
+RUN cd /rtmlib/thirdparty/nuttx \
+    && ./tools/configure.sh -a ../nuttx-apps rv-virt:smp64 \
+    && make ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d"
+
+# reference:
+#   qemu-system-riscv64 -semihosting -M virt -cpu rv64 -smp 8 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
+#RUN qemu-system-riscv64 -M virt -cpu rv64 -m 512M -smp 8 -monitor none -nographic -serial stdio -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx
+

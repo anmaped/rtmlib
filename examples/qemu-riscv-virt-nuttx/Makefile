@@ -3,10 +3,8 @@
 all:
 	echo "NuttX App Demo with RISC-V."
 
-	exit 0
-
 	# install dependencies
-	apt install -y kconfig-frontends genromfs xxd
+	sudo apt install -y kconfig-frontends genromfs xxd
 
 	# copy demo from ../../examples/qemu-riscv-virt-nuttx/demo
 

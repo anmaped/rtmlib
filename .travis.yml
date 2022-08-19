@@ -10,8 +10,10 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages: 
-    - gcc-5 
-    - g++-5
+    - gcc-10
+    - g++-10
+
+dist: focal
 
 os:
   - linux
@@ -21,10 +23,18 @@ install:
   - cd ~ 
   - mkdir arm-gcc-toolchain
   - wget -O $HOME/arm-gcc-toolchain/gcc.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2
-  - cd arm-gcc-toolchain
+  - pushd arm-gcc-toolchain
   - tar -jxf gcc.tar.bz2 --strip=1
   - popd
   - export PATH=$HOME/arm-gcc-toolchain/bin:$PATH
-  
+  - mkdir riscv64-gcc-toolchain
+  - wget -O $HOME/riscv64-gcc-toolchain/gcc.tar.gz https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2022.08.19/riscv64-elf-ubuntu-20.04-nightly-2022.08.19-nightly.tar.gz
+  - pushd riscv64-gcc-toolchain
+  - tar -xf gcc.tar.gz --strip=1
+  - popd
+  - export PATH=$HOME/riscv64-gcc-toolchain/bin:$PATH
+  - popd
+
 before_script:
   - arm-none-eabi-gcc --version
+  - riscv64-unknown-elf-gcc --version

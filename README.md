@@ -1,47 +1,49 @@
 # rtmlib 2
 
-[![Build Status](https://travis-ci.org/anmaped/rtmlib.svg?branch=v0.2)](https://travis-ci.org/anmaped/rtmlib)
+[![Build Status](https://app.travis-ci.com/anmaped/rtmlib.svg?branch=master)](https://app.travis-ci.com/anmaped/rtmlib)
 
 ## Description
 
-The RunTime embedded Monitoring Library (rtmlib) has been initially developed for runtime monitoring of real-time embedded systems [1] either for ARM and X86 platforms. rtmlib is a lean library that supports atomic operations on shared memory circular buffers and implements a monitor abstraction layer for infinite sequences of time-stamped symbols or events. This library is used to implement different monitoring architectures such as the ones proposed in [2] and [3]. Other efficient architectures can be deployed based on lock-free push, pull, and pop primitives over infinite trace sequences containing time-stamped events. The synchronization primitives for push, pull, and pop operations allow different readers and writers to progress asynchronously over the instantiated circular buffers and to synchronize when required. Indeed, the rtmlib solves the lock-free producer-consumer problem for circular buffer-based FIFO queues where readers are consumers and writers are producers.
+The RunTime embedded Monitoring Library (rtmlib) has been initially developed for runtime monitoring of real-time embedded systems either for ARM and X86 platforms [1]. rtmlib is a lean library that supports atomic operations on shared memory circular buffers and implements a monitor abstraction layer for infinite sequences of time-stamped symbols or events. This library is used to implement different monitoring architectures such as the ones proposed in [2] and [3]. Other efficient architectures can be deployed based on lock-free push, pull, and pop primitives over infinite trace sequences containing time-stamped events. The synchronization primitives for push, pull, and pop operations allow different readers and writers to progress asynchronously over the instantiated circular buffers and to synchronize when required. Indeed, the rtmlib solves the lock-free producer-consumer problem for circular buffer-based FIFO queues where readers are consumers and writers are producers.
 
-The rtmlib 2 is not just an improved version of rtmlibv0.1 but is also a library that supports hardware synthesis via Vivado HLS tool. The rtmlib can support software and hardware monitoring via dedicated CPU and FPGA devices.
+The rtmlib 2 is not just an improved version of the old rtmlib but is also a library that supports hardware synthesis via Vivado HLS Tool from Xilinx or SmartHLS Tool Suite from Microchip. The rtmlib can support software and hardware monitoring via dedicated CPU and FPGA devices.
 
-The figure Hybrid Overview shows our new approach.
+The figure shows our monitoring hybrid approach.
 
 ```mermaid
 flowchart LR;
-    DRAM_CPU-- PCIe DMA -->DRAM_FPGA;
-    DRAM_FPGA-- AXI4 -->HW_Monitor;
-    HW_Monitor-->DRAM_FPGA;
-    CPU_TRACE-- DMA ROUTER -->DRAM_CPU;
-    DRAM_CPU-- STREAM -->SW_Monitor;
+    DRAM_CPU[DRAM CPU]-- PCIe DMA -->DRAM_FPGA;
+    DRAM_FPGA[DRAM FPGA]-- AXI4 -->HW_Monitor;
+    HW_Monitor[HW Monitor]-->DRAM_FPGA;
+    CPU_TRACE[CPU Trace]-- DMA ROUTER -->DRAM_CPU;
+    DRAM_CPU[DRAM CPU]-- Ring Buffer -->SW_Monitor[SW Monitor];
 ```
 
-rtmlib has a direct connection with the rmtld3synth tool as a monitor integration layer. rmtld3synth is a tool that can generate cpp11 monitors and can be implemented in software or hardware.
+This hybrid approach enables the offload of more heavy monitors to the FPGA and the connection of CPU cores with the fabric monitor accelerators.
+rtmlib has a direct association with the rmtld3synth tool as the monitor integration layer. rmtld3synth is a tool that can generate cpp11 monitors that can be implemented in software and hardware.
 
 
 ## How to use rtmlib 2?
 
-See [https://anmaped.github.io/rtmlib/doc/](https://anmaped.github.io/rtmlib/doc/) for more details.
+See [examples](examples/) folder for more details.
 
-### Run rtmlib 2 examples
+See [https://anmaped.github.io/rtmlib/doc/](https://anmaped.github.io/rtmlib/doc/) for more details on rtmlib API.
 
-See `examples` folder for more details.
 
-### Run rtmlib 2 tests
+## Test rtmlib 2
 
-#### Container (recommended)
+### Using Container (recommended)
 
+It depends on podman.
 Build and run tests with
 ```
 podman build -f Containerfile -t rtmlib-test-img .
 ```
 
-#### Local
+### Using Makefile
 
-Use the `make` command to build the unit tests.
+Use the `make` command to build the unit tests. It depends on GCC 7 or above and other host libraries (see the Containerfile for more details on these dependencies!).
+
 ```
 cd tests/
 make

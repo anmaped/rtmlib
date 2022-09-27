@@ -95,12 +95,9 @@ RUN g++ --version
 RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
 RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
-COPY . /rtmlib
-RUN cd /rtmlib/thirdparty \
-    && rm -r /rtmlib/thirdparty/nuttx \
-    && git clone https://github.com/apache/incubator-nuttx.git nuttx
-RUN cd /rtmlib/thirdparty \
-    && git clone https://github.com/apache/incubator-nuttx-apps.git nuttx-apps
+#COPY . /rtmlib
+COPY examples /rtmlib/examples
+
 
 # make examples
 RUN cd /rtmlib/examples && make
@@ -168,10 +165,6 @@ RUN apt install -y \
     kconfig-frontends \
     genromfs \
     xxd
-
-#RUN cd /rtmlib/thirdparty \
-#    && git clone https://github.com/apache/incubator-nuttx.git nuttx \
-#    && git clone https://github.com/apache/incubator-nuttx-apps.git nuttx-apps
 
 RUN cd /rtmlib/thirdparty/nuttx \
     && ./tools/configure.sh -a ../nuttx-apps rv-virt:smp64 \

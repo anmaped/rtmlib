@@ -4,7 +4,12 @@ all:
 	echo "NuttX App Demo with RISC-V."
 
 	# install dependencies
+ifneq ($(shell id -u), 0)
+	@echo "You are not root, run this target as root ..."
 	sudo apt install -y kconfig-frontends genromfs xxd
+else
+	apt install -y kconfig-frontends genromfs xxd
+endif
 
 	# copy demo from ../../examples/qemu-riscv-virt-nuttx/demo
 

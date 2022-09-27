@@ -1,0 +1,3 @@
+- [ ] rename simplemonitor folder
+- [ ] complete RISC-V NuttX demo
+- [ ] update "kconfig-frontends genromfs xxd" travis-ci

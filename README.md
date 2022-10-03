@@ -4,7 +4,7 @@
 
 ## Description
 
-The RunTime embedded Monitoring Library (rtmlib) has been initially developed for runtime monitoring of real-time embedded systems either for ARM and X86 platforms [1]. rtmlib is a lean library that supports atomic operations on shared memory circular buffers and implements a monitor abstraction layer for infinite sequences of time-stamped symbols or events. This library is used to implement different monitoring architectures such as the ones proposed in [2] and [3]. Other efficient architectures can be deployed based on lock-free push, pull, and pop primitives over infinite trace sequences containing time-stamped events. The synchronization primitives for push, pull, and pop operations allow different readers and writers to progress asynchronously over the instantiated circular buffers and to synchronize when required. Indeed, the rtmlib solves the lock-free producer-consumer problem for circular buffer-based FIFO queues where readers are consumers and writers are producers.
+The RunTime embedded Monitoring Library (rtmlib) has been initially developed for runtime monitoring of real-time embedded systems either for ARM and X86 platforms [1] but now also supports RISC-V. rtmlib is a lean library that supports atomic operations on shared memory circular buffers and implements a monitor abstraction layer for infinite sequences of time-stamped symbols or events. This library is used to implement different monitoring architectures such as the ones proposed in [2] and [3]. Other efficient architectures can be deployed based on lock-free push, pull, and pop primitives over infinite trace sequences containing time-stamped events. The synchronization primitives for push, pull, and pop operations allow different readers and writers to progress asynchronously over the instantiated circular buffers and to synchronize when required. Indeed, the rtmlib solves the lock-free producer-consumer problem for circular buffer-based FIFO queues where readers are consumers and writers are producers.
 
 The rtmlib 2 is not just an improved version of the old rtmlib but is also a library that supports hardware synthesis via Vivado HLS Tool from Xilinx or SmartHLS Tool Suite from Microchip. The rtmlib can support software and hardware monitoring via dedicated CPU and FPGA devices.
 
@@ -34,7 +34,7 @@ See [https://anmaped.github.io/rtmlib/doc/](https://anmaped.github.io/rtmlib/doc
 
 ### Using Container (recommended)
 
-It depends on podman.
+It depends on the podman.
 Build and run tests with
 ```
 podman build -f Containerfile -t rtmlib-test-img .

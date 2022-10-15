@@ -1,0 +1,10 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+menuconfig DEMO_APP
+	tristate "Demo App rtmlib"
+	default n
+	---help---
+		Enable the Demo App rtmlib.

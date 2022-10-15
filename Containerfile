@@ -97,7 +97,7 @@ RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
 #COPY . /rtmlib
 COPY examples /rtmlib/examples
-
+COPY src /rtmlib/src
 
 # make examples
 RUN cd /rtmlib/examples && make

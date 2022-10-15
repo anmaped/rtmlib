@@ -32,7 +32,7 @@
  * Proposition
  */
 template <typename T>
-three_valued_type prop(T &trace, proposition &p, timespan &t) {
+three_valued_type prop(T &trace, const proposition &p, timespan &t) {
 
   typename T::buffer_t::event_t e;
   typename T::buffer_t::event_t e_next;

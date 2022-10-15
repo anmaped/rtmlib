@@ -3,8 +3,8 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-menuconfig DEMO_APP
-	tristate "Demo App rtmlib"
+menuconfig DEMO_MONITOR_APP
+	tristate "Demo Monitor App rtmlib"
 	default n
 	---help---
-		Enable the Demo App rtmlib.
+		Enable the Demo Monitor App rtmlib.

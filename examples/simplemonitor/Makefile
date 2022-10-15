@@ -6,7 +6,7 @@ LDFLAGS := -pthread -latomic
 CPPFLAGS := -std=c++11 -mcx16 -I../../src/ -DDEBUG=1 # -mcx16 flag is required for gcc versions <7
 CXXFLAGS := 
 
-simplemonitor: $(OBJ_FILES) ../../src/periodicmonitor.cpp
+simplemonitor: $(OBJ_FILES)
 	g++ $(CPPFLAGS) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp

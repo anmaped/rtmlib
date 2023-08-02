@@ -190,7 +190,12 @@ ifeq ($(ARCH),riscv64)
 
 		PREAMBLE +=
 		MAIN_PREAMBLE +=
-		MAIN_EPILOGUE +=
+		MAIN_EPILOGUE+=register int r0 __asm__(\"x5\"); \n
+		MAIN_EPILOGUE+=r0 = 0x5555; \n
+		MAIN_EPILOGUE+=register int r1 __asm__(\"x6\"); \n
+		MAIN_EPILOGUE+=r1 = 0x100000; \n
+		MAIN_EPILOGUE+=__asm__ volatile(\"sw x5, 0(x6)\"); \n
+		
 		VPATH +=
 		PREFIX_MAIN:= __s_
 		EXTENSION := .o

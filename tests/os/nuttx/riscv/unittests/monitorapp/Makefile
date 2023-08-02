@@ -12,7 +12,6 @@ MODULE = $(CONFIG_DEMO_MONITOR_APP)
 MAINSRC = main.cxx
 
 CXXFLAGS += \
-  -I$(APPDIR)/../../../src \
-  -I$(APPDIR)/demo/monitorapp/mon
+  -I$(APPDIR)/../../src
 
 include $(APPDIR)/Application.mk

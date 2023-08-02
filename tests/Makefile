@@ -181,6 +181,21 @@ ifeq ($(ARCH),riscv64)
 
 		VPATH += $(SRC_DIR)/os/none/riscv
 	endif
+
+	ifeq ($(OS),nuttx)
+		OBJ_FILES += 
+		LDFLAGS := -r
+		ASFLAGS := 
+		CPPFLAGS += -nostdlib -fno-exceptions -fno-threadsafe-statics -D__NUTTX__ -I../thirdparty/nuttx/include
+
+		PREAMBLE +=
+		MAIN_PREAMBLE +=
+		MAIN_EPILOGUE +=
+		VPATH +=
+		PREFIX_MAIN:= __s_
+		EXTENSION := .o
+	endif
+
 endif
 
 CC := $(PREF)gcc

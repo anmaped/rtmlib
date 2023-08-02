@@ -95,9 +95,9 @@ RUN g++ --version
 RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
 RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
-#COPY . /rtmlib
 COPY examples /rtmlib/examples
 COPY src /rtmlib/src
+COPY tests /rtmlib/tests
 
 # make examples
 RUN cd /rtmlib/examples && make
@@ -143,10 +143,8 @@ RUN qemu-system-arm -M mps2-an386 -cpu cortex-m4 -monitor none -nographic -seria
 # make and run rtmlib tests with qemu (aarch64)
 #
 
-# [TODO]
-
 # without OS
-#RUN cd /rtmlib/tests && make clean && make ARCH=aarch64 OS=none CMSIS=/rtmlib/thirdparty/cmsis_5 BUILD_DIR=out
+# [TODO] RUN cd /rtmlib/tests && make clean && make ARCH=aarch64 OS=none CMSIS=/rtmlib/thirdparty/cmsis_5 BUILD_DIR=out
 
 
 #
@@ -167,10 +165,24 @@ RUN apt install -y \
     xxd
 
 RUN cd /rtmlib/thirdparty/nuttx \
-    && ./tools/configure.sh -a ../nuttx-apps rv-virt:smp64 \
+    && ./tools/configure.sh -a ../nuttx-apps rv-virt:nsh64 \
     && make ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d"
 
-# reference:
-#   qemu-system-riscv64 -semihosting -M virt -cpu rv64 -smp 8 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
-#RUN qemu-system-riscv64 -M virt -cpu rv64 -m 512M -smp 8 -monitor none -nographic -serial stdio -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx
+RUN cd /rtmlib/tests && make ARCH=riscv64 OS=nuttx BUILD_DIR=build/riscv-nuttx
 
+RUN ls /rtmlib/tests/build/riscv-nuttx -l
+
+RUN nm /rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o
+
+# include object /rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o
+RUN cd /rtmlib/thirdparty/nuttx \
+    && make distclean && make apps_distclean \
+    && cp -r /rtmlib/tests/os/nuttx/riscv/unittests ../nuttx-apps/ \
+    && echo "unittests" >> /rtmlib/thirdparty/nuttx/boards/risc-v/qemu-rv/rv-virt/src/etc/init.d/rcS \
+    && ./tools/configure.sh -a ../nuttx-apps rv-virt:nsh64 \
+    && ls ../nuttx-apps/ -l \
+    && make \
+       ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d" \
+       EXTRA_OBJS="/rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o"
+
+RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic

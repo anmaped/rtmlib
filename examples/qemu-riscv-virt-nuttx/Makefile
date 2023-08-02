@@ -1,27 +1,29 @@
-#
+# NuttX Example Makefile
 
 all:
 	echo "NuttX App Demo with RISC-V."
 
 	# install dependencies
 ifneq ($(shell id -u), 0)
-	@echo "You are not root, run this target as root ..."
-	sudo apt install -y kconfig-frontends genromfs xxd
+	@echo "You need super user to install dependencies."
+	@echo "Running sudo ..."
+	sudo apt install -y kconfig-frontends genromfs xxd git
 else
 	apt update
-	apt install -y kconfig-frontends genromfs xxd
+	apt install -y kconfig-frontends genromfs xxd git
 endif
 
-	# copy demo from ../../examples/qemu-riscv-virt-nuttx/demo
+	# download nuttx and compile it with the demo apps
 
-	echo "help" >> ../../thirdparty/nuttx/boards/risc-v/qemu-rv/rv-virt/src/etc/init.d/rcS
+	git clone --branch nuttx-10.3.0 --depth 1 https://github.com/apache/nuttx.git
+	git clone --branch nuttx-10.3.0 --depth 1 https://github.com/apache/nuttx-apps.git
 
-	pwd
-	#exit 1
-	# compile nuttx with the demo
-	#cd ../../thirdparty && mkdir -p nuttx-apps
-		
-	cd ../../thirdparty/nuttx && cp -r ../../examples/qemu-riscv-virt-nuttx/demo ../nuttx-apps/
-	
-	cd ../../thirdparty/nuttx && ./tools/configure.sh -a ../nuttx-apps rv-virt:smp64
-	cd ../../thirdparty/nuttx && make ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d"
+	# copy examples/qemu-riscv-virt-nuttx/demo directory
+	cp -r demo nuttx-apps/
+
+	ls nuttx-apps/ -l
+
+	echo "help" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/src/etc/init.d/rcS
+
+	cd nuttx && ./tools/configure.sh -a ../nuttx-apps/ rv-virt:nsh64
+	cd nuttx && make ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d"

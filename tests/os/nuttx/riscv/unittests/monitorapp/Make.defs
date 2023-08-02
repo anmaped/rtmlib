@@ -1,0 +1,3 @@
+#ifeq ($(DEMO_MONITOR_APP),y)
+CONFIGURED_APPS += $(APPDIR)/unittests/monitorapp
+#endif

@@ -72,8 +72,8 @@ typedef unsigned int uint32_t;
  */
 #if defined(__riscv)
 
-//#warning "Atomic guarantees on RISC-V are not supported yet!"
-// __riscv_atomic
+// #warning "Atomic guarantees on RISC-V are not supported yet!"
+//  __riscv_atomic
 
 #include <atomic>
 
@@ -82,6 +82,8 @@ typedef unsigned int uint32_t;
 #elif defined(__FREERTOS__)
 #include <FreeRTOS_POSIX/sched.h>
 #define pthread_yield() (sched_yield())
+#elif defined(__NUTTX__)
+#include <pthread.h>
 #endif
 
 #define NATIVE_POINTER_TYPE uint64_t
@@ -111,7 +113,7 @@ union page_t {
  */
 #elif defined(__arm__)
 
-//#warning "Atomic guarantees on ARM32 are not supported yet!"
+// #warning "Atomic guarantees on ARM32 are not supported yet!"
 
 #include <atomic>
 

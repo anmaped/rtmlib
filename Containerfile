@@ -185,4 +185,4 @@ RUN cd /rtmlib/thirdparty/nuttx \
        ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d" \
        EXTRA_OBJS="/rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o"
 
-RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
+#RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic

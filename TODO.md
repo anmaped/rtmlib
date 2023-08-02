@@ -1,3 +1,7 @@
 - [ ] rename simplemonitor folder
 - [ ] complete RISC-V NuttX demo
 - [ ] update "kconfig-frontends genromfs xxd" travis-ci
+- [ ] implement riscv clockgettime macro
+- [x] implement and automate riscv NuttX unittests (included in Containerfile)
+- [ ] automate QEmu run with NuttX (disabled in Containerfile for now)
+- [ ] find the bug in rtmlib

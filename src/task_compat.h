@@ -89,6 +89,8 @@ struct task {
 
   void *(*run)(void *);
 
+  void *run_payload;
+
   int create_task(void *(*loop)(void *), const int pri, const int s_policy,
                   int stack_size = STACK_SIZE) {
     pthread_attr_t attribute = {0};
@@ -124,9 +126,9 @@ struct task {
   }
 
   task(char const *id, void *(*loop)(void *), const int prio,
-       const int sch_policy, const useconds_t p)
-      : tid(id), period(p), sched_policy(sch_policy), priority(prio),
-        run(loop) {
+       const int sch_policy, const useconds_t p, void *payload=NULL)
+      : tid(id), period(p), sched_policy(sch_policy), priority(prio), run(loop),
+        run_payload(payload) {
     create_task(
         [](void *tsk) -> void * {
           struct task *ttask = (struct task *)tsk;
@@ -182,7 +184,7 @@ struct task {
                 ETIMEDOUT, break;);
             pthread_mutex_unlock(&ttask->fmtx);
 
-            ttask->run(NULL);
+            ttask->run(ttask->run_payload);
 
             if (ttask->st == ABORT) {
               ttask->running = false;

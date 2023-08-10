@@ -12,8 +12,9 @@
   #define RTML_BUFFER0_TYPE Event< proposition >
   #define RTML_BUFFER0_SETUP()                                                   \
     RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE> __buffer0;                 \
-    int tzero = 0;                                                               \
-                                                                                 \
+    int tzero = 0;
+  
+  #define RTML_BUFFER0_TRIGGER_PERIODIC_MONITORS()                                           \
     RMTLD3_reader<                                                               \
         RTML_reader<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>>, int>     \
         trace = RMTLD3_reader<                                                   \
@@ -21,12 +22,7 @@
             int>(__buffer0, tzero);                                              \
     Mon0<RMTLD3_reader<                                                          \
         RTML_reader<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>>, int>>    \
-        mon_mon0(0, trace);
-
-  #define RTML_BUFFER0_TRIGGER_PERIODIC_MONITORS()                               \
-    if (mon_mon0.enable()) {                                                     \
-      printf("ERROR\n");                                                         \
-    }
+        mon_mon0(100000, trace);
 
   template<class T>
   class Mon0 : public RTML_monitor {
@@ -39,7 +35,7 @@
 
       timespan tzero = 0;
       three_valued_type _out = _mon0_compute<T>(trace,tzero);
-      DEBUG_RTMLD3("Veredict:%d\n", _out);
+      DEBUG_RTMLD3("Status:%d\n", _out);
     }
 
   public:

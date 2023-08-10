@@ -23,6 +23,7 @@ static int daemon_task;
 RTML_BUFFER0_SETUP();
 
 static int monitor_main_loop(int argc, char **argv) {
+
   // enable rmtld3synth monitor(s)
   RTML_BUFFER0_TRIGGER_PERIODIC_MONITORS();
 

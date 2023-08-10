@@ -34,8 +34,9 @@ See [https://anmaped.github.io/rtmlib/doc/](https://anmaped.github.io/rtmlib/doc
 
 ### Using Container (recommended)
 
-It depends on the podman.
-Build and run tests with
+The utilization of Podman/Buildah is necessary for building and running tests using containers.
+
+Build and run unit tests with
 ```
 podman build -f Containerfile -t rtmlib-test-img .
 ```

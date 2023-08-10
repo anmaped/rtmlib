@@ -25,5 +25,12 @@ endif
 
 	echo "help" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/src/etc/init.d/rcS
 
+	echo "CONFIG_NSH_ARCHROMFS=y" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/configs/nsh64/defconfig \
+
+	echo "CONFIG_NSH_ROMFSETC=y" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/configs/nsh64/defconfig \
+	echo "CONFIG_FS_ROMFS=y" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/configs/nsh64/defconfig
+	echo "CONFIG_INIT_STACKSIZE=3072" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/configs/nsh64/defconfig
+	echo "CONFIG_SYSTEM_NSH_STACKSIZE=3072" >> ./nuttx/boards/risc-v/qemu-rv/rv-virt/configs/nsh64/defconfig
+
 	cd nuttx && ./tools/configure.sh -a ../nuttx-apps/ rv-virt:nsh64
 	cd nuttx && make ARCHCPUFLAGS="-O0 -mcmodel=medany -march=rv64gc -mabi=lp64d"

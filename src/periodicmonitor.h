@@ -22,21 +22,15 @@
 #ifndef RTML_PERIODICMONITOR_H
 #define RTML_PERIODICMONITOR_H
 
-#include <pthread.h>
-#include <stdio.h>
-#include <time.h>
-
-#ifdef __NUTTX__
-#include <sched.h>
-#endif
-
-#include <errno.h>
 
 #include "circularbuffer.h"
 #include "task_compat.h"
 #include "time_compat.h"
 
-extern "C" void __cxa_pure_virtual() { while (1); }
+extern "C" void __cxa_pure_virtual() {
+  while (1)
+    ;
+}
 
 /**
  * Periodic monitor.
@@ -55,42 +49,7 @@ extern "C" void __cxa_pure_virtual() { while (1); }
 class RTML_monitor {
 private:
   /** Points to the monitor thread in the OS. */
-  pthread_t thread;
-
-  /** Enumeration type for monitor status. */
-  enum mon_status { ACTIVATION=0, RUNNING, DELAY, ABORT, ABORTED, UNACTIVATE };
-
-  /** Monitor state */
-  struct Monitor_state {
-    /** The schedulability policy according to the pthread lib. */
-    const int sched_policy;
-
-    /** The priority for the schedule policy, please see the pthread
-     * documentation for more details. */
-    const int priority;
-
-    /**
-     * Stack size
-     */
-    const size_t stack_size;
-
-    /** Status of the monitor */
-    mon_status status;
-
-    /** Mutex for monitor */
-    pthread_mutex_t fmtx;
-
-    /** Conditional variable for monitor */
-    pthread_cond_t cond;
-
-    /** The Monitor's period. */
-    useconds_t period;
-
-    Monitor_state(const int sch, const int prio, const useconds_t p)
-        : sched_policy(sch), priority(prio), stack_size(STACK_SIZE),
-          status(UNACTIVATE), period(p){};
-
-  } m_state;
+  __task _task;
 
   /**
    * A function pointer for the monitor body. The body content is executed in
@@ -162,112 +121,50 @@ public:
 };
 
 RTML_monitor::RTML_monitor(const useconds_t period)
-    : m_state(Monitor_state(SCHED_FIFO, 1, period)) {}
+    : _task(task("loop", loop, 50, SCHED_OTHER, period, this)) {}
 
 RTML_monitor::RTML_monitor(const useconds_t period,
                            unsigned int schedule_policy, unsigned int priority)
-    : m_state(Monitor_state(schedule_policy, priority, period)) {}
+    : _task(task("loop", loop, priority, schedule_policy, period, this)) {}
 
 void *RTML_monitor::loop(void *ptr) {
   RTML_monitor *monitor = (RTML_monitor *)ptr;
-  struct timespec now = {}, next = {}, tmp = {};
-
-  // Mutex and conditional variables for pthread_cond_timedwait
-  pcheck_print(pthread_mutex_init(&monitor->m_state.fmtx, NULL), P_OK,
-               return NULL;);
-  pcheck_print(pthread_cond_init(&monitor->m_state.cond, NULL), P_OK,
-               return NULL;);
-
-  clock_gettime(CLOCK_REALTIME, &next);
-
-  for (;;) {
-
-    clock_gettime(CLOCK_REALTIME, &now);
-
-    // convert useconds_t to struct timespec
-    struct timespec p;
-
-    useconds_t2timespec(&monitor->m_state.period, &p);
-
-    DEBUGV3("period in us: %lu\n", monitor->m_state.period);
-    DEBUGV3("period in (s, ns): %lu, %lu\n", p.tv_sec, p.tv_nsec);
-    DEBUGV3("current time in (s, ns): %lu,%lu\n", now.tv_sec, now.tv_nsec);
-    DEBUGV3("current last next time in (s, ns): %lu, %lu\n", next.tv_sec, next.tv_nsec);
-
-    timespecadd(&next, &p, &next);
-
-    DEBUGV3("next time in (s, ns): %lu, %lu\n", next.tv_sec, next.tv_nsec);
-
-    if (timespeccmp(&now, &next, >)) {
-
-      timespecsub(&next, &now, &tmp);
-      DEBUGV_ERROR("RTML_monitor is missing their deadline for %lu s.%lu ns\n",
-               tmp.tv_sec, tmp.tv_nsec);
-    }
-
-    pthread_mutex_lock(&monitor->m_state.fmtx);
-    pcheck_print(pthread_cond_timedwait(&monitor->m_state.cond,
-                                        &monitor->m_state.fmtx, &next),
-                 ETIMEDOUT, break;);
-    pthread_mutex_unlock(&monitor->m_state.fmtx);
-
-    monitor->run();
-
-    if (monitor->m_state.status == ABORT) {
-      monitor->m_state.status = ABORTED;
-      return NULL;
-    }
-  }
-
-  return NULL;
+  monitor->run();
 }
 
 int RTML_monitor::enable() {
-  pthread_attr_t attribute = {};
-  struct sched_param parameter;
 
   ::printf("RTML_monitor started!\n");
 
-  if (!isRunning()) {
-
-    pcheck(pthread_attr_init(&attribute));
-
-    pcheck_attr(pthread_attr_setschedpolicy(&attribute, m_state.sched_policy),
-                &attribute);
-
-    pcheck_attr(pthread_attr_setstacksize(&attribute, m_state.stack_size),
-                &attribute);
-    DEBUGV("Stack:%lu\n", m_state.stack_size);
-
-    parameter.sched_priority = m_state.priority;
-    DEBUGV("Priority:%d\n", m_state.priority);
-
-    pcheck_attr(pthread_attr_setschedparam(&attribute, &parameter), &attribute);
-
-    pcheck_attr(pthread_create(&thread, &attribute, &loop, (void *)this),
-                &attribute);
-
-    pcheck(pthread_attr_destroy(&attribute));
-
-    m_state.status = RUNNING;
-
-  } else {
-    // errno = EALREADY;
-    return -1;
-  }
+  // [TODO: check status]
 
   return P_OK;
 }
 
 int RTML_monitor::disable() {
-  m_state.status = ABORT;
+
+  // [TODO: check status]
+
   return P_OK;
 }
 
-bool RTML_monitor::isRunning() const { return m_state.status == RUNNING; }
+bool RTML_monitor::isRunning() const {
 
-const useconds_t &RTML_monitor::getPeriod() const { return m_state.period; }
+  // [TODO: check status - m_state.status == RUNNING]
 
-void RTML_monitor::setPeriod(const useconds_t &p) { m_state.period = p; }
+  return P_OK;
+}
+
+const useconds_t &RTML_monitor::getPeriod() const {
+
+  // [TODO: m_state.period]
+
+  return 1;
+}
+
+void RTML_monitor::setPeriod(const useconds_t &p) {
+
+  // [TODO: m_state.period = p;]
+}
 
 #endif // RTML_PERIODICMONITOR_H

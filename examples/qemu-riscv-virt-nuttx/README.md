@@ -59,5 +59,5 @@ Now instead of a simple sequence, we have a timed sequence where symbols have a 
 With the rmtld3synth tool, we can generate a monitor in the CPP11 source code for the later case. Try to run rmtld3synth and replace the generated source code directory on the `mon` directory.
 
 ```
-./rmtld3synth --synth-cpp11 --input-latexeq "a" --out-src tst
+./rmtld3synth --synth-cpp11 --input-latexeq "a" --set-monitor-period 10000 --out-src tst
 ```

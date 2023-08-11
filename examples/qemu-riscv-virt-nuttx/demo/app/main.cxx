@@ -15,12 +15,14 @@
 
 extern "C" int app_main(int argc, char *const argv[]);
 
-// [TODO: construct the header file BUFFER0]
+// [TODO: construct the header file instrumentation - Rtm_instrument_0ee2.h ]
+#include "Rtm_instrument_0ee2.h"
+
 typedef unsigned int proposition;
 #define RTML_BUFFER0_SIZE 100
 #define RTML_BUFFER0_TYPE Event< proposition >
 
-extern "C" RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE> __buffer0;
+extern "C" RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE> __buffer_rtm_monitor_0ee2;
 
 static int daemon_task;
 
@@ -33,7 +35,7 @@ static int app_main_loop(int argc, char **argv) {
   // send C - 1s -> B
 
   RTML_writer<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>> writer =
-      RTML_writer<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>>(__buffer0);
+      RTML_writer<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>>(__buffer_rtm_monitor_0ee2);
 
   RTML_BUFFER0_TYPE node0 = RTML_BUFFER0_TYPE();
 

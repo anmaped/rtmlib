@@ -35,7 +35,7 @@ MAIN_EPILOGUE:=
 EPILOGUE:=
 
 # Debug Flags
-#DEBUGFLAGS=-DDEBUG=3
+#DEBUGFLAGS=-DUSE_DEBUGV_RMTLD3 #-DDEBUG=3
 
 ifneq (,$(filter x$(ARCH),x xx86 xx86_64))
 

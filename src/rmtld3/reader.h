@@ -129,7 +129,7 @@ template <typename R, typename P>
 typename R::error_t
 RMTLD3_reader<R, P>::read_next(typename R::buffer_t::event_t &e) {
 
-  return ((length() > 1 &&
+  return ((length() > 1 && !(cursor == R::top) && // [TODO: check this: !(cursor == R::top)]
            (R::buffer.read(e, (size_t)(cursor + 1) % (R::buffer.size + 0))) ==
                R::buffer.OK))
              ? R::AVAILABLE
@@ -142,7 +142,7 @@ RMTLD3_reader<R, P>::read_previous(typename R::buffer_t::event_t &e) {
 
   DEBUGV_RMTLD3("consumed=%d available=%d total=%d\n", consumed(), length(),
                 R::length());
-  return ((consumed() > 0 &&
+  return ((consumed() > 0 && !(cursor == R::bottom) && // [TODO: check this: !(cursor == R::bottom)]
            (R::buffer.read(e, (size_t)(cursor - 1) % (R::buffer.size + 0))) ==
                R::buffer.OK))
              ? R::AVAILABLE

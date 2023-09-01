@@ -25,14 +25,15 @@
 #include <assert.h>
 #include <utility>
 
+#include "time_compat.h"
+
 typedef unsigned int proposition;
-typedef float realnumber;
-typedef std::pair<realnumber, bool> duration;
+typedef std::pair<timeabs, bool> duration;
 
 enum three_valued_type { T_TRUE, T_FALSE, T_UNKNOWN };
 enum four_valued_type { FV_TRUE, FV_FALSE, FV_UNKNOWN, FV_SYMBOL };
 
-#define make_duration(r, b) std::make_pair((realnumber)r, b)
+#define make_duration(r, b) std::make_pair((timeabs)r, b)
 
 inline duration sum_dur(const duration &lhs, const duration &rhs) {
   return make_duration(lhs.first + rhs.first, lhs.second || rhs.second);
@@ -56,15 +57,20 @@ inline duration mult_dur(const duration &lhs, const duration &rhs) {
       ? T_TRUE                                                                 \
       : ((b31 == T_FALSE && b32 == T_FALSE) ? T_FALSE : T_UNKNOWN)
 
+/** AND */
+#define b3_and(b31, b32)                                                       \
+  (b31 == T_TRUE && b32 == T_TRUE)                                             \
+      ? T_TRUE                                                                 \
+      : ((b31 == T_FALSE || b32 == T_FALSE) ? T_FALSE : T_UNKNOWN)
+
 /** NOT */
 #define b3_not(b3)                                                             \
   ((b3 == T_TRUE) ? T_FALSE : ((b3 == T_FALSE) ? T_TRUE : T_UNKNOWN))
 
 /** Relation operator < */
 #define b3_lessthan(n1, n2)                                                    \
-  ((std::get<1>(n1) || std::get<1>(n2))                                        \
-       ? T_UNKNOWN                                                             \
-       : ((std::get<0>(n1) < std::get<0>(n2)) ? T_TRUE : T_FALSE))
+  ((n1.second || n2.second) ? T_UNKNOWN                                        \
+                            : ((n1.first < n2.first) ? T_TRUE : T_FALSE))
 
 #define ASSERT_RMTLD3(l) assert(l)
 
@@ -72,7 +78,8 @@ inline duration mult_dur(const duration &lhs, const duration &rhs) {
 #define DEBUGV_RMTLD3(...)
 #else
 #include <algorithm>
-#include <string.h>
+#include <string>
+#include <cstring>
 
 static int ident = 0;
 static int r = 0;
@@ -114,9 +121,9 @@ static int r = 0;
 #endif
 
 #ifndef USE_DEBUG_RMTLD3
-#define DEBUG_RTMLD3(...)
+#define DEBUG_RMTLD3(...)
 #else
-#define DEBUG_RTMLD3(args...) ::printf(args)
+#define DEBUG_RMTLD3(args...) ::printf(args)
 #endif
 
 #define out_p(res)                                                             \

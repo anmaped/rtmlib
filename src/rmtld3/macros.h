@@ -20,13 +20,13 @@
  */
 
 /**
- * This header file contain the template to construct the RMTLD3 formulas in a
- * modular way
+ * This header file contain the template to construct the RMTLD3 formulas.
  */
 
 #include <utility>
 
 #include "rmtld3.h"
+#include "terms.h"
 
 /**
  * Proposition
@@ -106,6 +106,10 @@ three_valued_type until_less(T &trace, timespan &t) {
 
     while (trace.pull(event) == trace.AVAILABLE) {
 
+      // check if symbol converged and stop!
+      if (symbol != FV_SYMBOL)
+        break;
+
       DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
 
       trace.read(event);
@@ -137,40 +141,90 @@ three_valued_type until_less(T &trace, timespan &t) {
 /**
  * Eventually(=)
  *
- * pre-processing
- *
- * 1) Always (=) is equivalent to Eventually(=) (the evaluation at one point)
- *
  */
 template <typename T, typename E, timespan b>
 three_valued_type eventually_equal(T &trace, timespan &t) {
 
-  three_valued_type v_phi = E::eval_phi(trace, t + b);
-  trace.set(t);
+  trace.set(t); // force start at t
 
-  return v_phi;
+  timespan c_time = t;
+  typename T::buffer_t::event_t event;
+  three_valued_type symbol = T_UNKNOWN;
+  
+  while (trace.pull(event) == trace.AVAILABLE) {
+
+      DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+
+      trace.read(event);
+      c_time = event.getTime();
+
+      if (c_time > b + t)
+        break;
+
+      symbol = E::eval_phi1(trace, c_time);
+
+      trace.debug();
+    }
+
+  return symbol;
+}
+
+/**
+ * Always(=)
+ *
+ * Notes:
+ *   - Always (=) is equivalent to Eventually(=) (the evaluation at one point)
+ *
+ */
+template <typename T, typename E, timespan b>
+three_valued_type always_equal(T &trace, timespan &t) {
+
+  return eventually_equal<T, E, b>(trace, t);
 }
 
 /**
  * Eventually (<)
+ *
+ * Notes:
+ *   - E::eval_phi1 is evaluated while E::eval_phi2 is discarded.
+ *
  */
 template <typename T, typename E, timespan b>
 three_valued_type eventually_less(T &trace, timespan &t) {
-  // [TODO]
-  return T_TRUE;
+
+  class Eval_eventually_less {
+  public:
+    static three_valued_type eval_phi1(T &trace, timespan &t) {
+      return T_TRUE;
+    };
+    static three_valued_type eval_phi2(T &trace, timespan &t) {
+      return E::eval_phi1(trace, t);
+    };
+  };
+
+  return until_less<T, Eval_eventually_less, b>(trace, t);
 }
 
 /**
  * Always (<)
  *
- * pre-processing
- *
- * 1) Until (=) is the same as A Until (=a) B <-> Always(<a) A and
- * Eventually(=a) B
+ * Notes:
+ *   - E::eval_phi1 is evaluated while E::eval_phi2 is discarded.
  *
  */
 template <typename T, typename E, timespan b>
 three_valued_type always_less(T &trace, timespan &t) {
-  // [TODO]
-  return T_TRUE;
+
+  class Eval_always_less {
+  public:
+    static three_valued_type eval_phi1(T &trace, timespan &t) {
+      return T_TRUE;
+    };
+    static three_valued_type eval_phi2(T &trace, timespan &t) {
+      return b3_not(E::eval_phi1(trace, t));
+    };
+  };
+
+  auto sf = until_less<T, Eval_always_less, b>(trace, t);
+  return b3_not(sf);
 }

@@ -39,7 +39,7 @@ protected:
 
     timespan tzero = 0;
     three_valued_type _out = _rtm_compute_0ee2_0<T>(trace, tzero);
-    DEBUG_RTMLD3("Status:%d\n", _out);
+    DEBUG_RMTLD3("Status:%d\n", _out);
   }
 
 public:

@@ -22,8 +22,8 @@
 #ifndef _DEBUG_COMPAT_H_
 #define _DEBUG_COMPAT_H_
 
-#ifndef DEBUG
-#define DEBUG 0
+#ifndef RTMLIB_DEBUG
+#define RTMLIB_DEBUG 0
 #endif
 
 #if defined(__arm__) || defined(__riscv)
@@ -39,7 +39,7 @@ extern "C" int printf(const char *format, ...);
 #define x86 1
 #endif
 
-#if defined(DEBUG) && DEBUG > 0 && defined(x86)
+#if defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 0 && defined(x86)
 
 #define DEBUGV_ERROR(fmt, args...)                                             \
   fprintf(stderr, "ERROR: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
@@ -51,7 +51,7 @@ extern "C" int printf(const char *format, ...);
 
 #define DEBUGV_APPEND(fmt, args...) fprintf(stdout, fmt, ##args)
 
-#if defined(DEBUG) && DEBUG > 2 && defined(x86)
+#if defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 2 && defined(x86)
 
 #define DEBUGV3(fmt, args...)                                                  \
   fprintf(stdout, "DEBUG: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
@@ -66,7 +66,7 @@ extern "C" int printf(const char *format, ...);
 
 #endif
 
-#elif defined(DEBUG) && DEBUG > 0 && ( defined(__arm__) || defined(__riscv) )
+#elif defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 0 && ( defined(__arm__) || defined(__riscv) )
 
 #define DEBUGV_ERROR(fmt, args...)                                             \
   printf("ERROR: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, ##args)
@@ -76,7 +76,7 @@ extern "C" int printf(const char *format, ...);
 
 #define DEBUGV_APPEND(fmt, args...) printf(fmt, ##args)
 
-#if defined(DEBUG) && DEBUG > 2 && ( defined(__arm__) || defined(__riscv) )
+#if defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 2 && ( defined(__arm__) || defined(__riscv) )
 
 #define DEBUGV3(fmt, args...)                                                  \
   printf("DEBUG3: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, ##args)

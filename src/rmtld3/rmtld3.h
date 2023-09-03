@@ -74,7 +74,7 @@ inline duration mult_dur(const duration &lhs, const duration &rhs) {
 
 #define ASSERT_RMTLD3(l) assert(l)
 
-#ifndef USE_DEBUGV_RMTLD3
+#ifndef RTMLIB_ENABLE_DEBUGV_RMTLD3
 #define DEBUGV_RMTLD3(...)
 #else
 #include <algorithm>
@@ -120,7 +120,7 @@ static int r = 0;
   };
 #endif
 
-#ifndef USE_DEBUG_RMTLD3
+#ifndef RTMLIB_ENABLE_DEBUG_RMTLD3
 #define DEBUG_RMTLD3(...)
 #else
 #define DEBUG_RMTLD3(args...) ::printf(args)

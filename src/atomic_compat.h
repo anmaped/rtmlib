@@ -25,7 +25,7 @@
 // Architecture dependent macros for atomic operations
 
 /*
- * There is a notable difference in the __HW__, __x86__ and __ARM_CM4__
+ * There is a notable difference in the __HW__, __i386__ and __ARM_CM4__
  * implementations. ARM macros implement atomic operations using
  * Load-link/store-conditional instructions, x86 uses compare-exchange, and
  * __HW__ supports hardware synthesis.
@@ -62,7 +62,7 @@ typedef unsigned int uint32_t;
   ts = array[_bottom()].getTime();
 
 /* Software */
-#elif defined(__riscv) || defined(__arm__) || defined(__x86__) ||              \
+#elif defined(__riscv) || defined(__arm__) || defined(__i386__) ||              \
     defined(__x86_64__)
 
 /*
@@ -149,11 +149,11 @@ union page_t {
  * x86 and x86_64 atomic macros
  *
  */
-#elif defined(__x86__) || defined(__x86_64__)
+#elif defined(__i386__) || defined(__x86_64__)
 
 #include <atomic>
 
-#if defined(__x86__)
+#if defined(__i386__) && not defined(__x86_64__)
 #define NATIVE_POINTER_TYPE uint32_t
 #define NATIVE_ATOMIC_POINTER uint64_t
 #elif defined(__x86_64__)

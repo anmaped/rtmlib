@@ -90,7 +90,7 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
     if (p)
       stateref->bottom = ((size_t)(stateref->bottom + 1) % (buffer.size + 1));
 
-    err = (p) ? buffer.OVERFLOW : buffer.OK;
+    err = (p) ? buffer.BUFFER_OVERFLOW : buffer.OK;
   });
 
   buffer.write(event, top);

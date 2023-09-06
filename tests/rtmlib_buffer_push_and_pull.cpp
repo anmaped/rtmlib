@@ -83,7 +83,7 @@ int rtmlib_buffer_push_and_pull() {
     nodex.set(ID, i);
 
     if (i >= 98)
-      assert(buf.push(nodex) == buf.OVERFLOW);
+      assert(buf.push(nodex) == buf.BUFFER_OVERFLOW);
     else
       assert(buf.push(nodex) == buf.OK);
   }

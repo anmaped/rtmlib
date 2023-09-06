@@ -1,5 +1,5 @@
-language: c
-sudo: required
+language: generic
+dist: focal
 
 script:
   - cd tests && make && ./output/rtmlib_unittests && cd -
@@ -7,13 +7,9 @@ script:
 
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages: 
     - gcc-10
     - g++-10
-
-dist: focal
 
 os:
   - linux

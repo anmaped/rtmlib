@@ -55,16 +55,16 @@ int rtmlib_reader_and_writer() {
     nodex.set(ID, i);
 
     if (i >= 100)
-      assert(buf.push(nodex) == buf.OVERFLOW);
+      assert(buf.push(nodex) == buf.BUFFER_OVERFLOW);
     else
       assert(buf.push(nodex) == buf.OK);
   }
 
   Event<int> node1 = Event<int>();
 
-  assert(reader.pull(node1) == reader.OVERFLOW);
+  assert(reader.pull(node1) == reader.READER_OVERFLOW);
 
-  assert(reader.pop(node1) == reader.OVERFLOW);
+  assert(reader.pop(node1) == reader.READER_OVERFLOW);
 
   assert(reader.gap() == true);
 
@@ -92,7 +92,7 @@ int rtmlib_reader_and_writer() {
     nodey.set(ID, j);
 
     if (j >= 100)
-      assert(writer.push(nodey) == buf.OVERFLOW);
+      assert(writer.push(nodey) == buf.BUFFER_OVERFLOW);
 
     if (j < 100)
       assert(writer.push(nodey) == buf.OK);

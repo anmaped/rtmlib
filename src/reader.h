@@ -56,7 +56,7 @@ protected:
 public:
   typedef B buffer_t;
 
-  typedef enum { AVAILABLE = 0, UNAVAILABLE, OVERFLOW, BUFFER_READ } error_t;
+  typedef enum { AVAILABLE = 0, UNAVAILABLE, READER_OVERFLOW, BUFFER_READ } error_t;
 
   /**
    * Constructs a new RTML_reader.
@@ -142,7 +142,7 @@ RTML_reader<B>::pull(typename B::event_t &event) {
   DEBUGV3("pull-> length=%lu bottom=%lu top=%lu\n", length(), bottom, top);
 
   if (gap())
-    return OVERFLOW;
+    return READER_OVERFLOW;
   else
     return (length() > delta || av) ? AVAILABLE : UNAVAILABLE;
 }
@@ -163,7 +163,7 @@ RTML_reader<B>::pop(typename B::event_t &event) {
   DEBUGV3("pop-> %d (%d,%d)\n", length(), bottom, top);
 
   if (gap())
-    return OVERFLOW;
+    return READER_OVERFLOW;
   else
     return (length() > 0) ? AVAILABLE : UNAVAILABLE;
 }

@@ -101,7 +101,7 @@ public:
 
   typedef T event_t;
 
-  typedef enum { OK = 0, EMPTY, OVERFLOW, OUT_OF_BOUND, UNSAFE } error_t;
+  typedef enum { OK = 0, EMPTY, BUFFER_OVERFLOW, OUT_OF_BOUND, UNSAFE } error_t;
 
   ATOMIC_TYPE();
   ATOMIC_PAGE();
@@ -171,7 +171,7 @@ RTML_buffer<T, N>::push(const event_t &node) {
 
   DEBUGV3("push-> %d (%d,%d) r:%d\n", length(), _bottom(), _top(), p);
 
-  return (p) ? OVERFLOW : ((writer) ? UNSAFE : OK);
+  return (p) ? BUFFER_OVERFLOW : ((writer) ? UNSAFE : OK);
 }
 
 template <typename T, size_t N>

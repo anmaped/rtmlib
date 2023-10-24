@@ -100,28 +100,24 @@ three_valued_type until_less(T &trace, timespan &t) {
 
     typename T::buffer_t::event_t event;
 
-    symbol = eval_b(trace, c_time, symbol);
-
-    trace.debug();
-
-    while (trace.pull(event) == trace.AVAILABLE) {
-
-      // check if symbol converged and stop!
-      if (symbol != FV_SYMBOL)
-        break;
-
+    do {
       DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
 
       trace.read(event);
       c_time = event.getTime();
 
-      if (c_time > b + t)
+      if (c_time >= b + t) /* Check: > or >= */
         break;
 
       symbol = eval_b(trace, c_time, symbol);
 
       trace.debug();
-    }
+
+      // check if symbol converged and stop!
+      if (symbol != FV_SYMBOL)
+        break;
+    
+    } while (trace.pull(event) == trace.AVAILABLE);
 
     return std::make_pair(symbol, c_time);
   };
@@ -151,8 +147,7 @@ three_valued_type eventually_equal(T &trace, timespan &t) {
   typename T::buffer_t::event_t event;
   three_valued_type symbol = T_UNKNOWN;
   
-  while (trace.pull(event) == trace.AVAILABLE) {
-
+  do {
       DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
 
       trace.read(event);
@@ -162,9 +157,10 @@ three_valued_type eventually_equal(T &trace, timespan &t) {
         break;
 
       symbol = E::eval_phi1(trace, c_time);
+      trace.set(c_time); // force start at c_time
 
       trace.debug();
-    }
+  } while (trace.pull(event) == trace.AVAILABLE);
 
   return symbol;
 }

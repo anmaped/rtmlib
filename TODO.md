@@ -1,7 +1,10 @@
 - [ ] rename simplemonitor folder
-- [ ] complete RISC-V NuttX demo
+- [ ] complete RISC-V NuttX demo (lacks app with pattern)
 - [ ] update "kconfig-frontends genromfs xxd" travis-ci
 - [ ] implement riscv clockgettime macro (without OS)
 - [x] implement and automate riscv NuttX unittests (included in Containerfile)
 - [x] implement automated NuttX unit tests for QEMU environment
 - [ ] find the bug in rtmlib (see debug files)
+- [ ] test a trace with repetitive values (current unittests formulas fail)
+- [ ] test a trace that overlaps (current unittests formulas fail)
+- [ ] correct issues with cpp mode (some unittests fail)

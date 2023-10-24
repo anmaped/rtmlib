@@ -61,3 +61,7 @@ With the rmtld3synth tool, we can generate a monitor in the CPP11 source code fo
 ```
 ./rmtld3synth --synth-cpp11 --input-latexeq "a" --set-monitor-period 10000 --out-src tst
 ```
+
+```
+./rmtld3synth --synth-cpp11 --input-latexeq "a \until_{<10} b" --set-monitor-period 10000 --out-src tst
+```

@@ -46,10 +46,10 @@ typedef unsigned int uint32_t;
 /*
  * disable lock-free atomic
  */
-#define ATOMIC_PAGE()                                                          \
-  {}
-#define ATOMIC_PAGE_SWAP()                                                     \
-  {}
+#define ATOMIC_TYPE()
+#define ATOMIC_PAGE()
+#define ATOMIC_PAGE_SWAP()
+
 #define ATOMIC(body)                                                           \
   { body }
 

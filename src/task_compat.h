@@ -22,7 +22,11 @@
 #ifndef _TASK_COMPAT_H_
 #define _TASK_COMPAT_H_
 
-#ifdef __NUTTX__
+#ifdef __HW__
+#define STACK_SIZE 0
+#define SCHED_OTHER 0
+#define SCHED_FIFO 0
+#elif defined(__NUTTX__)
 #include <errno.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -66,6 +70,34 @@
   }
 
 enum status { ACTIVATION, RUNNING, DELAY, ABORT, ABORTED, UNACTIVATE };
+
+#ifdef __HW__
+
+struct task {
+
+  char const *tid;
+
+  const useconds_t period;
+
+  const int sched_policy;
+
+  const int priority;
+
+  bool running;
+
+  status st;
+
+  void *(*run)(void *);
+
+  void *run_payload;
+
+  task(char const *id, void *(*loop)(void *), const int prio, const int sch_policy, const useconds_t p, void *payload=NULL): \
+    tid(id), period(p), sched_policy(sch_policy), priority(prio), run(loop), run_payload(payload) {}
+};
+
+#endif
+
+#ifndef __HW__
 
 struct task {
 
@@ -198,6 +230,8 @@ struct task {
         prio, sch_policy);
   }
 };
+
+#endif
 
 typedef struct task __task;
 

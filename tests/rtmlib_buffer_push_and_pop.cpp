@@ -47,6 +47,13 @@ int rtmlib_buffer_push_and_pop() {
   Event<int> node2 = Event<int>(ID, 2);
   buf.push(node2);
 
+  // check buffer copy
+  RTML_buffer<Event<int>, 100> buf_copy;
+  RTML_buffer<Event<int>, 100> *buf_copy_ = &buf_copy;
+  *(buf_copy_) = buf;
+  
+  assert(buf_copy_->length() == 3);
+
   assert(buf.length() == 3);
 
   assert([&]() {

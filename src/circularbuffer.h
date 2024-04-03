@@ -25,6 +25,15 @@
 #include "debug_compat.h"
 #include "event.h"
 
+
+#ifndef __HW__
+#include <cstring>
+#define MEMCPY(x,y,z) std::memcpy(x,y,z)
+#else
+#error "There is not memcpy implementation!"
+#endif
+
+
 /**
  * RTML_buffer implements a circular buffer. This buffer is the support
  * for RTML_reader and RTML_writer classes. For instance, The monitor uses
@@ -150,6 +159,11 @@ public:
    * Print the state and the buffer content into the stdout
    */
   void debug() const;
+
+  /**
+   * Copy
+   */
+  RTML_buffer& operator=(const RTML_buffer&);
 };
 
 template <typename T, size_t N>
@@ -258,6 +272,12 @@ template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
   }
 
   DEBUGV3_APPEND("\n");
+}
+
+template <typename T, size_t N>
+RTML_buffer<T, N>& RTML_buffer<T, N>::operator=(const RTML_buffer<T, N>& rhs) {
+  MEMCPY(this, &rhs, sizeof(rhs));
+  return *this;
 }
 
 #endif //_RTML_CIRCULARBUFFER_H_

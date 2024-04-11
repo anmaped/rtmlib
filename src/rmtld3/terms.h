@@ -32,7 +32,9 @@ duration duration_term(T &trace, timespan &t) {
 
   /* indicator function */
   auto indicator_function = [](T &trace, timespan &t) -> duration {
+    size_t c = trace.get_cursor();
     auto formula = E::eval_phi1(trace, t);
+    trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
 
     return (formula == T_TRUE)
                ? make_duration(1, false)
@@ -40,7 +42,7 @@ duration duration_term(T &trace, timespan &t) {
                                        : make_duration(0, true));
   };
 
-  trace.set(t); // force backward start at t
+  size_t c_duration = trace.get_cursor();
 
   // initialization of c_time_prev
   trace.read(event);
@@ -84,6 +86,8 @@ duration duration_term(T &trace, timespan &t) {
     DEBUGV_RMTLD3("duration=%ld unknown=%d (%d,%d)\n", acc.first, acc.second,
                   c_time_prev, c_time);
   }
+
+  trace.set_cursor(c_duration); // reset the cursor changes during the evaluation of the subformula
 
   return acc;
 }

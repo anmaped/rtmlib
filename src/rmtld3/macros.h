@@ -68,17 +68,19 @@ three_valued_type until_less(T &trace, timespan &t) {
                                : ((b1 != T_TRUE) ? b3_to_b4(b1) : FV_SYMBOL);
       };
 
+      size_t c = trace.get_cursor();
       DEBUGV_RMTLD3("$compute phi1\n");
       // compute phi1
       three_valued_type cmpphi1 = E::eval_phi1(trace, t);
-      trace.set(t); // reset all reads of the subformula
       DEBUGV_RMTLD3("@compute phi1.\n");
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
 
+      c = trace.get_cursor();
       DEBUGV_RMTLD3("$compute phi2\n");
       // compute phi2
       three_valued_type cmpphi2 = E::eval_phi2(trace, t);
-      trace.set(t); // reset all reads of the subformula
       DEBUGV_RMTLD3("@compute phi2.\n");
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
 
       four_valued_type rs = eval_i(cmpphi1, cmpphi2);
 
@@ -91,8 +93,6 @@ three_valued_type until_less(T &trace, timespan &t) {
         return v;
       }
     };
-
-    trace.set(t); // force start at t
 
     timespan c_time = t;
 
@@ -122,12 +122,16 @@ three_valued_type until_less(T &trace, timespan &t) {
     return std::make_pair(symbol, c_time);
   };
 
+  size_t c_until = trace.get_cursor();
+
   DEBUGV_RMTLD3("$(+++) until_op_less\n");
 
   std::pair<four_valued_type, timespan> eval_c = eval_fold(trace, t);
 
   DEBUGV_RMTLD3("@(---) until_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
                 eval_c.second, eval_c.second < t + b);
+
+  trace.set_cursor(c_until); // reset the cursor changes during the evaluation of the subformula
 
   return (eval_c.first == FV_SYMBOL)
              ? ((eval_c.second < t + b) ? T_UNKNOWN : T_FALSE)
@@ -141,11 +145,11 @@ three_valued_type until_less(T &trace, timespan &t) {
 template <typename T, typename E, timespan b>
 three_valued_type eventually_equal(T &trace, timespan &t) {
 
-  trace.set(t); // force start at t
-
   timespan c_time = t;
   typename T::buffer_t::event_t event;
   three_valued_type symbol = T_UNKNOWN;
+
+  size_t c_eventually = trace.get_cursor();
   
   do {
       DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
@@ -156,11 +160,16 @@ three_valued_type eventually_equal(T &trace, timespan &t) {
       if (c_time > b + t)
         break;
 
+      size_t c = trace.get_cursor();
+      DEBUGV_RMTLD3("$compute phi\n");
       symbol = E::eval_phi1(trace, c_time);
-      trace.set(c_time); // force start at c_time
+      DEBUGV_RMTLD3("@compute phi.\n");
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
 
       trace.debug();
   } while (trace.pull(event) == trace.AVAILABLE);
+
+  trace.set_cursor(c_eventually); // reset the cursor changes during the evaluation of the subformula
 
   return symbol;
 }
@@ -198,7 +207,11 @@ three_valued_type eventually_less(T &trace, timespan &t) {
     };
   };
 
-  return until_less<T, Eval_eventually_less, b>(trace, t);
+  size_t c_eventually = trace.get_cursor();
+  auto sf = until_less<T, Eval_eventually_less, b>(trace, t);
+  trace.set_cursor(c_eventually); // reset the cursor changes during the evaluation of the subformula
+
+  return sf;
 }
 
 /**
@@ -221,6 +234,9 @@ three_valued_type always_less(T &trace, timespan &t) {
     };
   };
 
+  size_t c_always = trace.get_cursor();
   auto sf = until_less<T, Eval_always_less, b>(trace, t);
+  trace.set_cursor(c_always); // reset the cursor changes during the evaluation of the subformula
+
   return b3_not(sf);
 }

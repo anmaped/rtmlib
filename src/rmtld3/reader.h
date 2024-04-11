@@ -56,18 +56,49 @@ public:
    */
   typename R::buffer_t::error_t set(timespan &);
 
+  /**
+   * Sets cursor
+   */
+  typename R::buffer_t::error_t set_cursor(size_t &);
+
+  /**
+   * Gets cursor
+   */
+  size_t& get_cursor();
+
+  /**
+   * Pull event
+   */
   typename R::error_t pull(typename R::buffer_t::event_t &);
 
+  /**
+   * Read event without removing it from the buffer
+   */
   typename R::error_t read(typename R::buffer_t::event_t &);
 
+  /**
+   * Read next event without removing it from the buffer
+   */
   typename R::error_t read_next(typename R::buffer_t::event_t &);
 
+  /**
+   * Read previous event without removing it from the buffer
+   */
   typename R::error_t read_previous(typename R::buffer_t::event_t &);
 
+  /**
+   * Current buffer length of the reader
+   */
   size_t length() const;
 
+  /**
+   * Number of reader's consumed elements from the buffer
+   */
   size_t consumed() const;
 
+  /**
+   * Enable debug message for reader
+   */
   void debug() const;
 };
 
@@ -95,6 +126,27 @@ typename R::buffer_t::error_t RMTLD3_reader<R, P>::set(timespan &t) {
   }
 
   return R::buffer_t::OK;
+}
+
+template <typename R, typename P>
+typename R::buffer_t::error_t RMTLD3_reader<R, P>::set_cursor(size_t &c) {
+
+  typename R::buffer_t::event_t e;
+
+  // to check the validity of the cursor before changing it
+  if (R::buffer.read(e, c) == R::buffer.OK) {
+    cursor = c;
+    return R::buffer_t::OK;
+  }
+  else {
+    DEBUG_RMTLD3("cursor set %i is not available\n", c);
+    return R::buffer_t::OUT_OF_BOUND;
+  }
+}
+
+template <typename R, typename P>
+size_t& RMTLD3_reader<R, P>::get_cursor() {
+  return cursor;
 }
 
 template <typename R, typename P>

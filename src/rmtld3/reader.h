@@ -49,22 +49,25 @@ public:
   /**
    * Resets cursor in the reader
    */
-  typename R::buffer_t::error_t reset();
+  typename R::error_t reset();
 
   /**
    * Sets cursor at time t
    */
-  typename R::buffer_t::error_t set(timespan &);
+  typename R::error_t set(timespan &);
 
   /**
    * Sets cursor
    */
-  typename R::buffer_t::error_t set_cursor(size_t &);
+  typename R::error_t set_cursor(size_t &);
 
   /**
    * Gets cursor
    */
   size_t& get_cursor();
+
+  typename R::error_t increment_cursor();
+  typename R::error_t decrement_cursor();
 
   /**
    * Pull event
@@ -103,50 +106,76 @@ public:
 };
 
 template <typename R, typename P>
-typename R::buffer_t::error_t RMTLD3_reader<R, P>::reset() {
+typename R::error_t RMTLD3_reader<R, P>::reset() {
 
   cursor = R::bottom;
 
-  return R::buffer_t::OK;
+  return R::AVAILABLE;
 }
 
 template <typename R, typename P>
-typename R::buffer_t::error_t RMTLD3_reader<R, P>::set(timespan &t) {
+typename R::error_t RMTLD3_reader<R, P>::set(timespan &t) {
 
   typename R::buffer_t::event_t e;
 
   while (read_previous(e) == R::AVAILABLE) {
 
     if (t > e.getTime())
-      break;
+      return R::AVAILABLE;
 
     // set cursor back
     cursor = (size_t)(cursor - 1) % (R::buffer.size + 0);
-    DEBUGV_RMTLD3("backtrack cursor=%d\n", cursor);
+    DEBUGV_RMTLD3("backward cursor=%d\n", cursor);
   }
 
-  return R::buffer_t::OK;
+  while (read_next(e) == R::AVAILABLE) {
+
+    if (t < e.getTime())
+      return R::AVAILABLE;
+
+    // set cursor back
+    cursor = (size_t)(cursor + 1) % (R::buffer.size + 0);
+    DEBUGV_RMTLD3("forward cursor=%d\n", cursor);
+  }
+
+  return R::UNAVAILABLE;
 }
 
 template <typename R, typename P>
-typename R::buffer_t::error_t RMTLD3_reader<R, P>::set_cursor(size_t &c) {
+typename R::error_t RMTLD3_reader<R, P>::set_cursor(size_t &c) {
 
   typename R::buffer_t::event_t e;
 
   // to check the validity of the cursor before changing it
   if (R::buffer.read(e, c) == R::buffer.OK) {
     cursor = c;
-    return R::buffer_t::OK;
+    return R::AVAILABLE;
   }
   else {
     DEBUG_RMTLD3("cursor set %i is not available\n", c);
-    return R::buffer_t::OUT_OF_BOUND;
+    return R::UNAVAILABLE;
   }
 }
 
 template <typename R, typename P>
 size_t& RMTLD3_reader<R, P>::get_cursor() {
   return cursor;
+}
+
+template <typename R, typename P>
+typename R::error_t RMTLD3_reader<R, P>::increment_cursor() {
+  // [TODO: check if cursor is bounded between _bot and _top]
+  cursor = (size_t)(cursor + 1) % R::buffer.size;
+
+  return R::AVAILABLE;
+}
+
+template <typename R, typename P>
+typename R::error_t RMTLD3_reader<R, P>::decrement_cursor() {
+  // [TODO: check if cursor is bounded between _bot and _top]
+  cursor = (size_t)(cursor - 1) % R::buffer.size;
+
+  return R::AVAILABLE;
 }
 
 template <typename R, typename P>

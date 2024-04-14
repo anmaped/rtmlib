@@ -30,21 +30,27 @@
 #include <rmtld3/formulas.h>
 #include <rmtld3/reader.h>
 
-template <typename T> class Eval_always {
+template <typename T> class Eval_since_b_1
+{
 public:
-  static three_valued_type eval_phi1(T &trace, timespan &t) {
-    proposition p = 1;
-    auto sf = prop<T>(trace, p, t);
+  static three_valued_type
+  eval_phi1 (T &trace, timespan &t)
+  {
+    auto sf = prop<T> (trace, 2, t);
     return sf;
   };
-  static three_valued_type eval_phi2(T &trace, timespan &t) {
-    return T_UNKNOWN;
+  static three_valued_type
+  eval_phi2 (T &trace, timespan &t)
+  {
+    auto sf = prop<T> (trace, 1, t);
+    return sf;
   };
 };
 
-extern "C" int rtmlib_rmtld3_always_less();
 
-int rtmlib_rmtld3_always_less() {
+extern "C" int rtmlib_rmtld3_since_less();
+
+int rtmlib_rmtld3_since_less() {
 
   typedef Event<int> event_t;
   typedef RTML_buffer<event_t, 100> buffer_t;
@@ -54,19 +60,11 @@ int rtmlib_rmtld3_always_less() {
   unsigned long int index = 0;
 
   event_t e[6] = {
-      event_t(1, 2),  event_t(1, 5),  event_t(1, 9),  event_t(1, 14),
-      event_t(1, 19), event_t(2, 20),
+      event_t(1, 2),  event_t(2, 3),  event_t(3, 9),  event_t(4, 10), event_t(5, 15)
   };
 
   for (int i = 0; i < 6; i++)
     buf.push(e[i]);
-
-  // check first element of the trace
-  {
-    event_t event;
-    buf.read(event, index);
-    assert(event.getTime() == 2 && event.getData() == 1);
-  };
 
   int tzero = 0.;
   trace_t trace = trace_t(buf, tzero);
@@ -74,12 +72,21 @@ int rtmlib_rmtld3_always_less() {
   trace.synchronize();
 
   auto _mon0_compute = [](trace_t &trace, timespan &t) -> three_valued_type {
-    auto sf = always_less<trace_t, Eval_always<trace_t>, 5>(trace, t);
-    return sf;
+    return [] (trace_t &trace, timespan &t) {
+      auto x = [] (trace_t &trace, timespan &t) {
+        auto x = prop<trace_t> (trace, 3, t);
+        return b3_not (x);
+      }(trace, t);
+      auto y = since_less<trace_t, Eval_since_b_1<trace_t>, 10> (trace, t);
+      return b3_or (x, y);
+    }(trace, t);
   };
 
-  timespan t = 2;
+  timespan t = 9;
+  trace.set(t);
   auto _out = _mon0_compute(trace, t);
+
+  //auto _out = since_less<trace_t, Eval_since_b_1<trace_t>, 10> (trace, t);
 
   if (strcmp(out_p(_out), "true") == 0)
     printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);

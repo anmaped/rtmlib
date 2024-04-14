@@ -41,11 +41,11 @@ three_valued_type prop(T &trace, const proposition &p, timespan &t) {
 
   if (status == trace.AVAILABLE && trace.read_next(e_next) == trace.AVAILABLE &&
       e.getTime() <= t && t < e_next.getTime()) {
-    DEBUGV_RMTLD3("eval: t=%lu prop=%d - (%d %d) next-> (%d %d)\n", t, p,
+    DEBUGV_RMTLD3("eval: t=%lu prop=%d e=(%d %d) e_next=(%d %d)\n", t, p,
                   e.getData(), e.getTime(), e_next.getData(), e_next.getTime());
     return e.getData() == p ? T_TRUE : T_FALSE;
   } else {
-    DEBUGV_RMTLD3("eval: t=%lu prop=%d - (%d %d) nobound\n", t, p, e.getData(),
+    DEBUGV_RMTLD3("eval: t=%lu prop=%d e=(%d %d) unbounded\n", t, p, e.getData(),
                   e.getTime());
     return T_UNKNOWN;
   }
@@ -73,14 +73,16 @@ three_valued_type until_less(T &trace, timespan &t) {
       // compute phi1
       three_valued_type cmpphi1 = E::eval_phi1(trace, t);
       DEBUGV_RMTLD3("@compute phi1.\n");
-      trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of
+                           // the subformula
 
       c = trace.get_cursor();
       DEBUGV_RMTLD3("$compute phi2\n");
       // compute phi2
       three_valued_type cmpphi2 = E::eval_phi2(trace, t);
       DEBUGV_RMTLD3("@compute phi2.\n");
-      trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of
+                           // the subformula
 
       four_valued_type rs = eval_i(cmpphi1, cmpphi2);
 
@@ -116,7 +118,7 @@ three_valued_type until_less(T &trace, timespan &t) {
       // check if symbol converged and stop!
       if (symbol != FV_SYMBOL)
         break;
-    
+
     } while (trace.pull(event) == trace.AVAILABLE);
 
     return std::make_pair(symbol, c_time);
@@ -131,7 +133,8 @@ three_valued_type until_less(T &trace, timespan &t) {
   DEBUGV_RMTLD3("@(---) until_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
                 eval_c.second, eval_c.second < t + b);
 
-  trace.set_cursor(c_until); // reset the cursor changes during the evaluation of the subformula
+  trace.set_cursor(c_until); // reset the cursor changes during the evaluation
+                             // of the subformula
 
   return (eval_c.first == FV_SYMBOL)
              ? ((eval_c.second < t + b) ? T_UNKNOWN : T_FALSE)
@@ -150,26 +153,28 @@ three_valued_type eventually_equal(T &trace, timespan &t) {
   three_valued_type symbol = T_UNKNOWN;
 
   size_t c_eventually = trace.get_cursor();
-  
+
   do {
-      DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+    DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
 
-      trace.read(event);
-      c_time = event.getTime();
+    trace.read(event);
+    c_time = event.getTime();
 
-      if (c_time > b + t)
-        break;
+    if (c_time > b + t)
+      break;
 
-      size_t c = trace.get_cursor();
-      DEBUGV_RMTLD3("$compute phi\n");
-      symbol = E::eval_phi1(trace, c_time);
-      DEBUGV_RMTLD3("@compute phi.\n");
-      trace.set_cursor(c); // reset the cursor changes during the evaluation of the subformula
+    size_t c = trace.get_cursor();
+    DEBUGV_RMTLD3("$compute phi\n");
+    symbol = E::eval_phi1(trace, c_time);
+    DEBUGV_RMTLD3("@compute phi.\n");
+    trace.set_cursor(
+        c); // reset the cursor changes during the evaluation of the subformula
 
-      trace.debug();
+    trace.debug();
   } while (trace.pull(event) == trace.AVAILABLE);
 
-  trace.set_cursor(c_eventually); // reset the cursor changes during the evaluation of the subformula
+  trace.set_cursor(c_eventually); // reset the cursor changes during the
+                                  // evaluation of the subformula
 
   return symbol;
 }
@@ -209,7 +214,8 @@ three_valued_type eventually_less(T &trace, timespan &t) {
 
   size_t c_eventually = trace.get_cursor();
   auto sf = until_less<T, Eval_eventually_less, b>(trace, t);
-  trace.set_cursor(c_eventually); // reset the cursor changes during the evaluation of the subformula
+  trace.set_cursor(c_eventually); // reset the cursor changes during the
+                                  // evaluation of the subformula
 
   return sf;
 }
@@ -236,7 +242,102 @@ three_valued_type always_less(T &trace, timespan &t) {
 
   size_t c_always = trace.get_cursor();
   auto sf = until_less<T, Eval_always_less, b>(trace, t);
-  trace.set_cursor(c_always); // reset the cursor changes during the evaluation of the subformula
+  trace.set_cursor(c_always); // reset the cursor changes during the evaluation
+                              // of the subformula
 
   return b3_not(sf);
+}
+
+/**
+ * Since (<)
+ */
+template <typename T, typename E, timespan b>
+three_valued_type since_less(T &trace, timespan &t) {
+  auto eval_fold = [](T &trace,
+                      timespan &t) -> std::pair<four_valued_type, timespan> {
+    // eval_b lambda function
+    auto eval_b = [](T &trace, timespan &t,
+                     four_valued_type &v) -> four_valued_type {
+      // eval_i lambda function
+      auto eval_i = [](three_valued_type &b1,
+                       three_valued_type &b2) -> four_valued_type {
+        return (b2 != T_FALSE) ? b3_to_b4(b2)
+                               : ((b1 != T_TRUE) ? b3_to_b4(b1) : FV_SYMBOL);
+      };
+
+      size_t c = trace.get_cursor();
+      DEBUGV_RMTLD3("$compute phi1\n");
+      // compute phi1
+      three_valued_type cmpphi1 = E::eval_phi1(trace, t);
+      DEBUGV_RMTLD3("@compute phi1.\n");
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of
+                           // the subformula
+
+      c = trace.get_cursor();
+      DEBUGV_RMTLD3("$compute phi2\n");
+      // compute phi2
+      three_valued_type cmpphi2 = E::eval_phi2(trace, t);
+      DEBUGV_RMTLD3("@compute phi2.\n");
+      trace.set_cursor(c); // reset the cursor changes during the evaluation of
+                           // the subformula
+
+      four_valued_type rs = eval_i(cmpphi1, cmpphi2);
+
+      DEBUGV_RMTLD3("eval_b: phi1=%s phi2=%s\n", out_p(cmpphi1),
+                    out_p(cmpphi2));
+
+      if (v == FV_SYMBOL) {
+        return rs;
+      } else {
+        return v;
+      }
+    };
+
+    timespan c_time = t;
+
+    four_valued_type symbol = FV_SYMBOL;
+
+    typename T::buffer_t::event_t event;
+
+    do {
+      DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+
+      trace.read(event);
+      c_time = event.getTime();
+
+      if (c_time == t) /* since semantics is strict and non-matching */
+        continue;
+
+      if (c_time <= t - b) /* Check: < or <= */
+        break;
+
+      symbol = eval_b(trace, c_time, symbol);
+
+      trace.debug();
+
+      // check if symbol converged and stop!
+      if (symbol != FV_SYMBOL)
+        break;
+
+    } while (trace.decrement_cursor() == trace.AVAILABLE &&
+             trace.read(event) == trace.AVAILABLE);
+
+    return std::make_pair(symbol, c_time);
+  };
+
+  size_t c_until = trace.get_cursor();
+
+  DEBUGV_RMTLD3("$(+++) since_op_less\n");
+
+  std::pair<four_valued_type, timespan> eval_c = eval_fold(trace, t);
+
+  DEBUGV_RMTLD3("@(---) since_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
+                eval_c.second, eval_c.second < t + b);
+
+  trace.set_cursor(c_until); // reset the cursor changes during the evaluation
+                             // of the subformula
+
+  return (eval_c.first == FV_SYMBOL)
+             ? ((eval_c.second < t - b) ? T_UNKNOWN : T_FALSE)
+             : b4_to_b3(eval_c.first);
 }

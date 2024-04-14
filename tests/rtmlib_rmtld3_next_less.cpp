@@ -27,7 +27,7 @@
 
 #include <circularbuffer.h>
 #include <reader.h>
-#include <rmtld3/macros.h>
+#include <rmtld3/formulas.h>
 #include <rmtld3/reader.h>
 
 template <typename T> class Eval_always_b_1_next

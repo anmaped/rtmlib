@@ -20,7 +20,7 @@
  */
 
 /*
- * rmtlib_rmtld3 with eventually
+ * rmtlib_rmtld3 with PAST eventually equal
  */
 
 #include <cstring>
@@ -30,21 +30,21 @@
 #include <rmtld3/formulas.h>
 #include <rmtld3/reader.h>
 
-template <typename T> class Eval_eventually {
+template <typename T> class Eval_pasteventually {
 public:
   static three_valued_type eval_phi1(T &trace, timespan &t) {
-    return T_TRUE;
-  };
-  static three_valued_type eval_phi2(T &trace, timespan &t) {
     proposition p = 2;
     auto sf = prop<T>(trace, p, t);
     return sf;
   };
+  static three_valued_type eval_phi2(T &trace, timespan &t) {
+    return T_UNKNOWN;
+  };
 };
 
-extern "C" int rtmlib_rmtld3_eventually_less();
+extern "C" int rtmlib_rmtld3_pasteventually_equal();
 
-int rtmlib_rmtld3_eventually_less() {
+int rtmlib_rmtld3_pasteventually_equal() {
 
   typedef Event<int> event_t;
   typedef RTML_buffer<event_t, 100> buffer_t;
@@ -54,7 +54,7 @@ int rtmlib_rmtld3_eventually_less() {
   unsigned long int index = 0;
 
   event_t e[7] = {
-      event_t(1, 2),  event_t(3, 5),  event_t(1, 9),  event_t(3, 14),
+      event_t(2, 2),  event_t(3, 5),  event_t(1, 9),  event_t(3, 14),
       event_t(1, 19), event_t(2, 21), event_t(3, 25),
   };
 
@@ -65,7 +65,7 @@ int rtmlib_rmtld3_eventually_less() {
   {
     event_t event;
     buf.read(event, index);
-    assert(event.getTime() == 2 && event.getData() == 1);
+    assert(event.getTime() == 2 && event.getData() == 2);
   };
 
   int tzero = 0.;
@@ -74,11 +74,12 @@ int rtmlib_rmtld3_eventually_less() {
   trace.synchronize();
 
   auto _mon0_compute = [](trace_t &trace, timespan &t) -> three_valued_type {
-    auto sf = until_less<trace_t, Eval_eventually<trace_t>, 22>(trace, t);
+    auto sf = pasteventually_equal<trace_t, Eval_pasteventually<trace_t>, 22>(trace, t);
     return sf;
   };
 
-  timespan t = 2;
+  timespan t = 20;
+  trace.set(t);
   auto _out = _mon0_compute(trace, t);
 
   if (strcmp(out_p(_out), "true") == 0)

@@ -64,7 +64,7 @@ public:
   /**
    * Gets cursor
    */
-  size_t& get_cursor();
+  size_t &get_cursor();
 
   typename R::error_t increment_cursor();
   typename R::error_t decrement_cursor();
@@ -150,21 +150,23 @@ typename R::error_t RMTLD3_reader<R, P>::set_cursor(size_t &c) {
   if (R::buffer.read(e, c) == R::buffer.OK) {
     cursor = c;
     return R::AVAILABLE;
-  }
-  else {
+  } else {
     DEBUG_RMTLD3("cursor set %i is not available\n", c);
     return R::UNAVAILABLE;
   }
 }
 
-template <typename R, typename P>
-size_t& RMTLD3_reader<R, P>::get_cursor() {
+template <typename R, typename P> size_t &RMTLD3_reader<R, P>::get_cursor() {
   return cursor;
 }
 
 template <typename R, typename P>
 typename R::error_t RMTLD3_reader<R, P>::increment_cursor() {
-  // [TODO: check if cursor is bounded between _bot and _top]
+
+  // check if cursor is bounded between bot and top
+  if (R::top == cursor)
+    return R::UNAVAILABLE;
+
   cursor = (size_t)(cursor + 1) % R::buffer.size;
 
   return R::AVAILABLE;
@@ -172,7 +174,11 @@ typename R::error_t RMTLD3_reader<R, P>::increment_cursor() {
 
 template <typename R, typename P>
 typename R::error_t RMTLD3_reader<R, P>::decrement_cursor() {
-  // [TODO: check if cursor is bounded between _bot and _top]
+
+  // check if cursor is bounded between _bot and _top
+  if (R::bottom == cursor)
+    return R::UNAVAILABLE;
+
   cursor = (size_t)(cursor - 1) % R::buffer.size;
 
   return R::AVAILABLE;
@@ -210,7 +216,8 @@ template <typename R, typename P>
 typename R::error_t
 RMTLD3_reader<R, P>::read_next(typename R::buffer_t::event_t &e) {
 
-  return ((length() > 1 && !(cursor == R::top) && // [TODO: check this: !(cursor == R::top)]
+  return ((length() > 1 &&
+           !(cursor == R::top) && // [TODO: check this: !(cursor == R::top)]
            (R::buffer.read(e, (size_t)(cursor + 1) % (R::buffer.size + 0))) ==
                R::buffer.OK))
              ? R::AVAILABLE
@@ -223,7 +230,9 @@ RMTLD3_reader<R, P>::read_previous(typename R::buffer_t::event_t &e) {
 
   DEBUGV_RMTLD3("consumed=%d available=%d total=%d\n", consumed(), length(),
                 R::length());
-  return ((consumed() > 0 && !(cursor == R::bottom) && // [TODO: check this: !(cursor == R::bottom)]
+  return ((consumed() > 0 &&
+           !(cursor ==
+             R::bottom) && // [TODO: check this: !(cursor == R::bottom)]
            (R::buffer.read(e, (size_t)(cursor - 1) % (R::buffer.size + 0))) ==
                R::buffer.OK))
              ? R::AVAILABLE

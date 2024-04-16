@@ -45,8 +45,8 @@ three_valued_type prop(T &trace, const proposition &p, timespan &t) {
                   e.getData(), e.getTime(), e_next.getData(), e_next.getTime());
     return e.getData() == p ? T_TRUE : T_FALSE;
   } else {
-    DEBUGV_RMTLD3("eval: t=%lu prop=%d e=(%d %d) unbounded\n", t, p, e.getData(),
-                  e.getTime());
+    DEBUGV_RMTLD3("eval: t=%lu prop=%d e=(%d %d) unbounded\n", t, p,
+                  e.getData(), e.getTime());
     return T_UNKNOWN;
   }
 }
@@ -193,34 +193,6 @@ three_valued_type always_equal(T &trace, timespan &t) {
 }
 
 /**
- * Eventually (<)
- *
- * Notes:
- *   - E::eval_phi1 is evaluated while E::eval_phi2 is discarded.
- *
- */
-template <typename T, typename E, timespan b>
-three_valued_type eventually_less(T &trace, timespan &t) {
-
-  class Eval_eventually_less {
-  public:
-    static three_valued_type eval_phi1(T &trace, timespan &t) {
-      return T_TRUE;
-    };
-    static three_valued_type eval_phi2(T &trace, timespan &t) {
-      return E::eval_phi1(trace, t);
-    };
-  };
-
-  size_t c_eventually = trace.get_cursor();
-  auto sf = until_less<T, Eval_eventually_less, b>(trace, t);
-  trace.set_cursor(c_eventually); // reset the cursor changes during the
-                                  // evaluation of the subformula
-
-  return sf;
-}
-
-/**
  * Always (<)
  *
  * Notes:
@@ -340,4 +312,88 @@ three_valued_type since_less(T &trace, timespan &t) {
   return (eval_c.first == FV_SYMBOL)
              ? ((eval_c.second < t - b) ? T_UNKNOWN : T_FALSE)
              : b4_to_b3(eval_c.first);
+}
+
+/**
+ * PastEventually(=)
+ *
+ */
+template <typename T, typename E, timespan b>
+three_valued_type pasteventually_equal(T &trace, timespan &t) {
+
+  timespan c_time = t;
+  typename T::buffer_t::event_t event;
+  three_valued_type symbol = T_UNKNOWN;
+
+  size_t c_pasteventually = trace.get_cursor();
+
+  do {
+    DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+
+    trace.read(event);
+    c_time = event.getTime();
+
+    if (c_time == t) /* since semantics is strict and non-matching */
+      continue;
+
+    if (c_time <= t - b)
+      break;
+
+    size_t c = trace.get_cursor();
+    DEBUGV_RMTLD3("$compute phi\n");
+    symbol = E::eval_phi1(trace, c_time);
+    DEBUGV_RMTLD3("@compute phi.\n");
+    trace.set_cursor(
+        c); // reset the cursor changes during the evaluation of the subformula
+
+    trace.debug();
+  } while (trace.decrement_cursor() == trace.AVAILABLE &&
+           trace.read(event) == trace.AVAILABLE);
+
+  trace.set_cursor(c_pasteventually); // reset the cursor changes during the
+                                      // evaluation of the subformula
+
+  return symbol;
+}
+
+/**
+ * Historically(=)
+ *
+ * Notes:
+ *   - Historically (=) is equivalent to PastEventually(=) (the evaluation at
+ * one single point)
+ *
+ */
+template <typename T, typename E, timespan b>
+three_valued_type historically_equal(T &trace, timespan &t) {
+
+  return pasteventually_equal<T, E, b>(trace, t);
+}
+
+/**
+ * Historically (<)
+ *
+ * Notes:
+ *   - E::eval_phi1 is evaluated while E::eval_phi2 is discarded.
+ *
+ */
+template <typename T, typename E, timespan b>
+three_valued_type historically_less(T &trace, timespan &t) {
+
+  class Eval_historically_less {
+  public:
+    static three_valued_type eval_phi1(T &trace, timespan &t) {
+      return T_TRUE;
+    };
+    static three_valued_type eval_phi2(T &trace, timespan &t) {
+      return b3_not(E::eval_phi1(trace, t));
+    };
+  };
+
+  size_t c_always = trace.get_cursor();
+  auto sf = since_less<T, Eval_historically_less, b>(trace, t);
+  trace.set_cursor(c_always); // reset the cursor changes during the evaluation
+                              // of the subformula
+
+  return b3_not(sf);
 }

@@ -5,7 +5,7 @@ x86_64 GNU/Linux 2023-08-11 23:46. */
 #ifndef RTM_COMPUTE_0EE2_H_
 #define RTM_COMPUTE_0EE2_H_
 
-#include "rmtld3/macros.h"
+#include "rmtld3/formulas.h"
 #include "rmtld3/rmtld3.h"
 
 // Propositions

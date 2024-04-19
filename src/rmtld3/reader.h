@@ -66,7 +66,14 @@ public:
    */
   size_t &get_cursor();
 
+  /**
+   * Increment current cursor
+   */
   typename R::error_t increment_cursor();
+
+  /**
+   * Decrement current cursor
+   */
   typename R::error_t decrement_cursor();
 
   /**
@@ -123,8 +130,7 @@ typename R::error_t RMTLD3_reader<R, P>::set(timespan &t) {
     if (t > e.getTime())
       return R::AVAILABLE;
 
-    // set cursor back
-    cursor = (size_t)(cursor - 1) % (R::buffer.size + 0);
+    decrement_cursor();
     DEBUGV_RMTLD3("backward cursor=%d\n", cursor);
   }
 
@@ -133,8 +139,7 @@ typename R::error_t RMTLD3_reader<R, P>::set(timespan &t) {
     if (t < e.getTime())
       return R::AVAILABLE;
 
-    // set cursor back
-    cursor = (size_t)(cursor + 1) % (R::buffer.size + 0);
+    increment_cursor();
     DEBUGV_RMTLD3("forward cursor=%d\n", cursor);
   }
 
@@ -163,11 +168,13 @@ template <typename R, typename P> size_t &RMTLD3_reader<R, P>::get_cursor() {
 template <typename R, typename P>
 typename R::error_t RMTLD3_reader<R, P>::increment_cursor() {
 
-  // check if cursor is bounded between bot and top
+  // check if current cursor is bounded between bot and top
   if (R::top == cursor)
     return R::UNAVAILABLE;
 
-  cursor = (size_t)(cursor + 1) % R::buffer.size;
+  // cursor = (size_t)(cursor + 1) % R::buffer.size;
+  if (++cursor >= R::buffer.size)
+    cursor = 0;
 
   return R::AVAILABLE;
 }
@@ -175,11 +182,13 @@ typename R::error_t RMTLD3_reader<R, P>::increment_cursor() {
 template <typename R, typename P>
 typename R::error_t RMTLD3_reader<R, P>::decrement_cursor() {
 
-  // check if cursor is bounded between _bot and _top
+  // check if current cursor is bounded between bot and top
   if (R::bottom == cursor)
     return R::UNAVAILABLE;
 
-  cursor = (size_t)(cursor - 1) % R::buffer.size;
+  // cursor = (size_t)(cursor - 1) % R::buffer.size;
+  if (--cursor < 0)
+    cursor = R::buffer.size - 1;
 
   return R::AVAILABLE;
 }
@@ -195,8 +204,7 @@ RMTLD3_reader<R, P>::pull(typename R::buffer_t::event_t &e) {
     if (R::buffer.read(e, cursor) != R::buffer.OK)
       return R::BUFFER_READ;
 
-    // update local cursor
-    cursor = (size_t)(cursor + 1) % (R::buffer.size + 0);
+    increment_cursor();
   }
 
   DEBUGV_RMTLD3("pull-> %d (%d,%d)\n", length(), cursor, R::top);
@@ -217,8 +225,9 @@ typename R::error_t
 RMTLD3_reader<R, P>::read_next(typename R::buffer_t::event_t &e) {
 
   return ((length() > 1 &&
-           !(cursor == R::top) && // [TODO: check this: !(cursor == R::top)]
-           (R::buffer.read(e, (size_t)(cursor + 1) % (R::buffer.size + 0))) ==
+           cursor != R::top && // [TODO: check this: !(cursor == R::top)]
+           (R::buffer.read(e, ((cursor + 1) >= R::buffer.size) ? 0
+                                                               : cursor + 1)) ==
                R::buffer.OK))
              ? R::AVAILABLE
              : R::UNAVAILABLE;
@@ -231,9 +240,9 @@ RMTLD3_reader<R, P>::read_previous(typename R::buffer_t::event_t &e) {
   DEBUGV_RMTLD3("consumed=%d available=%d total=%d\n", consumed(), length(),
                 R::length());
   return ((consumed() > 0 &&
-           !(cursor ==
-             R::bottom) && // [TODO: check this: !(cursor == R::bottom)]
-           (R::buffer.read(e, (size_t)(cursor - 1) % (R::buffer.size + 0))) ==
+           cursor != R::bottom && // [TODO: check this: !(cursor == R::bottom)]
+           (R::buffer.read(e, ((cursor - 1) < 0) ? R::buffer.size - 1
+                                                 : cursor - 1)) ==
                R::buffer.OK))
              ? R::AVAILABLE
              : R::UNAVAILABLE;

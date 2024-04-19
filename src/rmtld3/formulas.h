@@ -28,6 +28,8 @@
 #include "rmtld3.h"
 #include "terms.h"
 
+typedef bool with_in_between;
+
 /**
  * Proposition
  */
@@ -54,7 +56,7 @@ three_valued_type prop(T &trace, const proposition &p, timespan &t) {
 /**
  * Until (<)
  */
-template <typename T, typename E, timespan b>
+template <typename T, typename E, timespan b, typename S = void>
 three_valued_type until_less(T &trace, timespan &t) {
   auto eval_fold = [](T &trace,
                       timespan &t) -> std::pair<four_valued_type, timespan> {
@@ -114,6 +116,38 @@ three_valued_type until_less(T &trace, timespan &t) {
       symbol = eval_b(trace, c_time, symbol);
 
       trace.debug();
+
+      // check in-between; enable it when needed
+      constexpr const int v = std::is_void<S>::value;
+      if (v == false) {
+        size_t store_cursor = trace.get_cursor();
+        timespan t1, t2, t3 = c_time;
+        typename T::buffer_t::event_t e1, e2;
+        while (true) {
+          trace.increment_cursor();
+          if (trace.length() <= 1 || trace.read(e1) != trace.AVAILABLE ||
+              trace.read_next(e2) != trace.AVAILABLE) {
+            break;
+          }
+
+          t1 = e1.getTime();
+          t2 = e2.getTime();
+          t3 += (t2 - t1);
+
+          if (t3 >= t1)
+            break;
+
+          DEBUGV_RMTLD3("t1=%d t2=%d t3=%d\n", t1, t2, t3);
+
+          size_t store_cursor2 = trace.get_cursor();
+          trace.set(t3);
+          trace.decrement_cursor();
+          symbol = eval_b(trace, t3, symbol);
+          trace.set_cursor(store_cursor2);
+        };
+        trace.set_cursor(store_cursor);
+        // end check in-between
+      }
 
       // check if symbol converged and stop!
       if (symbol != FV_SYMBOL)

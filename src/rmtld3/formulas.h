@@ -213,6 +213,49 @@ three_valued_type eventually_equal(T &trace, timespan &t) {
   return symbol;
 }
 
+
+/**
+ * Eventually(<) Unbounded
+ *
+ */
+template <typename T, typename E>
+three_valued_type eventually_less_unbounded(T &trace, timespan &t) {
+
+  timespan c_time = t;
+  typename T::buffer_t::event_t event;
+  three_valued_type symbol = T_UNKNOWN;
+
+  size_t c_eventually = trace.get_cursor();
+
+  while (true) {
+    DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+
+    trace.read(event);
+    c_time = event.getTime();
+
+    size_t c = trace.get_cursor();
+    DEBUGV_RMTLD3("$compute phi\n");
+    symbol = E::eval_phi1(trace, c_time);
+    DEBUGV_RMTLD3("@compute phi.\n");
+    trace.set_cursor(
+        c); // reset the cursor changes during the evaluation of the subformula
+
+    trace.debug();
+
+    if (symbol != FV_SYMBOL)
+      break;
+
+    if (trace.pull(event) != trace.AVAILABLE)
+      break;
+  };
+
+  trace.set_cursor(c_eventually); // reset the cursor changes during the
+                                  // evaluation of the subformula
+
+  return symbol;
+}
+
+
 /**
  * Always(=)
  *

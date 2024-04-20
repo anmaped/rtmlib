@@ -22,7 +22,6 @@
 #ifndef RTML_PERIODICMONITOR_H
 #define RTML_PERIODICMONITOR_H
 
-
 #include "circularbuffer.h"
 #include "task_compat.h"
 #include "time_compat.h"
@@ -130,6 +129,8 @@ RTML_monitor::RTML_monitor(const useconds_t period,
 void *RTML_monitor::loop(void *ptr) {
   RTML_monitor *monitor = (RTML_monitor *)ptr;
   monitor->run();
+
+  return NULL;
 }
 
 int RTML_monitor::enable() {
@@ -148,23 +149,10 @@ int RTML_monitor::disable() {
   return P_OK;
 }
 
-bool RTML_monitor::isRunning() const {
+bool RTML_monitor::isRunning() const { return !_task.running; }
 
-  // [TODO: check status - m_state.status == RUNNING]
+const useconds_t &RTML_monitor::getPeriod() const { return _task.period; }
 
-  return P_OK;
-}
-
-const useconds_t &RTML_monitor::getPeriod() const {
-
-  // [TODO: m_state.period]
-
-  return 1;
-}
-
-void RTML_monitor::setPeriod(const useconds_t &p) {
-
-  // [TODO: m_state.period = p;]
-}
+void RTML_monitor::setPeriod(const useconds_t &p) { _task.period = p; }
 
 #endif // RTML_PERIODICMONITOR_H

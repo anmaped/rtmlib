@@ -56,13 +56,12 @@ typedef unsigned int uint32_t;
 #define _bottom() __bottom
 #define _top() __top
 
-#define ATOMIC_TRIPLE(b, t, ts)                                                \
+#define ATOMIC_TRIPLE(b, t)                                                    \
   b = _bottom();                                                               \
-  t = _top();                                                                  \
-  ts = array[_bottom()].getTime();
+  t = _top();
 
 /* Software */
-#elif defined(__riscv) || defined(__arm__) || defined(__i386__) ||              \
+#elif defined(__riscv) || defined(__arm__) || defined(__i386__) ||             \
     defined(__x86_64__)
 
 /*
@@ -205,11 +204,10 @@ union page_t {
   ((state_t *)(((page_t)std::atomic_load(&page)).stateref))->bottom
 #define _top() ((state_t *)(((page_t)std::atomic_load(&page)).stateref))->top
 
-#define ATOMIC_TRIPLE(b, t, ts)                                                \
+#define ATOMIC_TRIPLE(b, t)                                                    \
   state_t *s = ((state_t *)(((page_t)std::atomic_load(&page)).stateref));      \
   b = s->bottom;                                                               \
-  t = s->top;                                                                  \
-  ts = array[s->bottom].getTime();
+  t = s->top;
 
 #define ATOMIC_PAGE()                                                          \
   state_t state_global = {                                                     \

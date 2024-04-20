@@ -56,7 +56,12 @@ protected:
 public:
   typedef B buffer_t;
 
-  typedef enum { AVAILABLE = 0, UNAVAILABLE, READER_OVERFLOW, BUFFER_READ } error_t;
+  typedef enum {
+    AVAILABLE = 0,
+    UNAVAILABLE,
+    READER_OVERFLOW,
+    BUFFER_READ
+  } error_t;
 
   /**
    * Constructs a new RTML_reader.
@@ -175,8 +180,8 @@ template <typename B> bool RTML_reader<B>::synchronize() {
    */
 
   size_t b, t;
-  timespanw ts;
-  buffer.state(b, t, ts);
+  timespanw ts, ts_t;
+  buffer.state(b, t, ts, ts_t);
 
   DEBUGV("reader ts:%lu buffer ts:%lu\n", timestamp, ts);
 
@@ -195,16 +200,12 @@ template <typename B> bool RTML_reader<B>::synchronize() {
    *
    */
 
-  typename B::event_t event;
-  buffer.read(event,
-              t); // it may be better to include it inside the state [TODO]
-  size_t ts_t = event.getTime();
-
-  DEBUGV("sync: %d %d %d %d %d | %d %d %d\n", t < b, b < t, 0 < timestamp < ts,
-         ts_t < timestamp < buffer.size, ts < timestamp < ts_t, bottom, b, t);
+  DEBUGV("sync: %d %d %d %d %d | %d %d %d\n", t < b, b < t,
+         0 < timestamp && timestamp < ts, ts_t < timestamp,
+         ts < timestamp && timestamp < ts_t, bottom, b, t);
 
   if (t < b) {
-    if ((0 < timestamp < ts) || (ts_t < timestamp < buffer.size)) {
+    if ((0 < timestamp && timestamp < ts) || (ts_t < timestamp)) {
       /*
        * This can be triggered in the begining to syncronize the reader for the
        * first time.
@@ -227,7 +228,7 @@ template <typename B> bool RTML_reader<B>::synchronize() {
       return true; // HARD_SYNC
     }
   } else if (b < t) {
-    if (ts < timestamp < ts_t) {
+    if (ts < timestamp && timestamp < ts_t) {
       // update top (no gap found)
       top = t;
 
@@ -242,8 +243,8 @@ template <typename B> bool RTML_reader<B>::synchronize() {
     }
   } else {
     /*
-     * This can be triggered in the begining to syncronize the reader for the
-     * first time.
+     * This can also be triggered in the begining to syncronize the reader for
+     * the first time.
      */
     if (top == 0 && bottom == 0) {
       top = t;

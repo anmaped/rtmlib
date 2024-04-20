@@ -148,7 +148,8 @@ public:
   /**
    * Get the state of the buffer
    */
-  error_t state(size_t &, size_t &, timespanw &) const;
+  error_t state(size_t &, size_t &, timespanw &, timespanw &) const;
+  error_t state(size_t &, size_t &) const;
 
   /**
    * Get the length of the buffer
@@ -240,8 +241,21 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::write(event_t &event,
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
-RTML_buffer<T, N>::state(size_t &b, size_t &t, timespanw &ts) const {
-  ATOMIC_TRIPLE(b, t, ts);
+RTML_buffer<T, N>::state(size_t &b, size_t &t) const {
+  ATOMIC_TRIPLE(b, t);
+
+  DEBUGV3("timestamp=[0x%x,0x%x] b=0x%x t=0x%x\n", L(ts >> 32), L(ts), b, t);
+
+  return OK;
+}
+
+template <typename T, size_t N>
+typename RTML_buffer<T, N>::error_t
+RTML_buffer<T, N>::state(size_t &b, size_t &t, timespanw &ts, timespanw &ts_t) const {
+  ATOMIC_TRIPLE(b, t);
+
+  ts = array[b].getTime();                                             \
+  ts_t = array[t].getTime();
 
   DEBUGV3("timestamp=[0x%x,0x%x] b=0x%x t=0x%x\n", L(ts >> 32), L(ts), b, t);
 
@@ -250,15 +264,14 @@ RTML_buffer<T, N>::state(size_t &b, size_t &t, timespanw &ts) const {
 
 template <typename T, size_t N> size_t RTML_buffer<T, N>::length() const {
   size_t b, t;
-  timespanw ts;
-  state(b, t, ts);
+  state(b, t);
   return (t >= b) ? t - b : (N + 1) - (b - t);
 }
 
 template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
   size_t b, t;
-  timespanw ts;
-  state(b, t, ts);
+  timespanw ts, ts_t;
+  state(b, t, ts, ts_t);
 
   DEBUGV3(
       "[STATE] bottom=0x%x top=0x%x timestamp=[0x%x,0x%x] timestamp=%luns\n", b,

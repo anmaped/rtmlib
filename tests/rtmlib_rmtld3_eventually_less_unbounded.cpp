@@ -66,8 +66,8 @@ public:
           return b3_not(x);
         }(trace, t);
         auto y = [](T &trace, timespan &t) {
-          auto x = always_less<T, Eval_always_a_1<T>, 0>(trace, t);
-          auto y = always_equal<T, Eval_always_b_1<T>, 0>(trace, t);
+          auto x = always_less<T, Eval_always_a_1<T>, 3>(trace, t);
+          auto y = always_equal<T, Eval_always_b_1<T>, 3>(trace, t);
           return b3_and(x, y);
         }(trace, t);
         return b3_or(x, y);
@@ -94,10 +94,10 @@ int rtmlib_rmtld3_eventually_less_unbounded() {
 
   event_t e[8] = {
       event_t(1, 2),  event_t(3, 5),  event_t(1, 9),  event_t(3, 14),
-      event_t(1, 19), event_t(2, 21), event_t(1, 24), event_t(3, 30),
+      event_t(1, 19), event_t(PROP_a, 21), event_t(PROP_b, 24), event_t(3, 30),
   };
 
-  for (int i = 0; i < 7; i++)
+  for (int i = 0; i < 8; i++)
     buf.push(e[i]);
 
   // check first element of the trace
@@ -124,7 +124,7 @@ int rtmlib_rmtld3_eventually_less_unbounded() {
   timespan t = 2;
   auto _out = _mon0_compute(trace, t);
 
-  if (strcmp(out_p(_out), "true") == 0)
+  if (strcmp(out_p(_out), "unknown") == 0)
     printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);
   else
     printf("%s \033[0;31mFail.\e[0m\n", __FILE__);

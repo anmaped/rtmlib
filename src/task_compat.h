@@ -109,7 +109,7 @@ struct task {
 
   char const *tid;
 
-  const useconds_t period;
+  useconds_t period;
 
   const int sched_policy;
 

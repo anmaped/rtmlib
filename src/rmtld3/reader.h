@@ -156,7 +156,7 @@ typename R::error_t RMTLD3_reader<R, P>::set_cursor(size_t &c) {
     cursor = c;
     return R::AVAILABLE;
   } else {
-    DEBUG_RMTLD3("cursor set %i is not available\n", c);
+    DEBUG_RMTLD3("cursor set %li is not available\n", c);
     return R::UNAVAILABLE;
   }
 }
@@ -187,8 +187,10 @@ typename R::error_t RMTLD3_reader<R, P>::decrement_cursor() {
     return R::UNAVAILABLE;
 
   // cursor = (size_t)(cursor - 1) % R::buffer.size;
-  if (--cursor < 0)
+  if (cursor == 0)
     cursor = R::buffer.size - 1;
+  else
+    --cursor;
 
   return R::AVAILABLE;
 }
@@ -260,7 +262,7 @@ template <typename R, typename P> size_t RMTLD3_reader<R, P>::consumed() const {
 template <typename R, typename P> void RMTLD3_reader<R, P>::debug() const {
 
   typename R::buffer_t::event_t e;
-  for (int i = 0; i < R::buffer.size; i++) {
+  for (size_t i = 0; i < R::buffer.size; i++) {
     R::buffer.read(e, i);
     DEBUGV_RMTLD3("(%d,%d),", e.getData(), e.getTime());
   }

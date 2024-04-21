@@ -75,8 +75,11 @@ private:
    * Increment top of the buffer (++ is just a mnemonic)
    */
   size_t &operator++() {
-    _top() = ((size_t)(_top() + 1) % (N + 1));
-    return _top();
+    //_top() = ((size_t)(_top() + 1) % (N + 1));
+    size_t &t = _top();
+    if (++t > size) // [TODO: >= ? ]
+      t = 0;
+    return t;
   };
 
   /**
@@ -92,8 +95,11 @@ private:
    * Increment bottom of the buffer (-- is just a mnemonic)
    */
   size_t &operator--() {
-    _bottom() = (size_t)(_bottom() + 1) % (N + 1);
-    return _bottom();
+    //_bottom() = (size_t)(_bottom() + 1) % (N + 1);
+    size_t &b = _bottom();
+    if (++b > size) // [TODO: >= ? ]
+      b = 0;
+    return b;
   };
 
   /**

@@ -3,15 +3,8 @@
 all:
 	echo "NuttX App Demo with RISC-V."
 
-	# install dependencies
-ifneq ($(shell id -u), 0)
-	@echo "You need super user to install dependencies."
-	@echo "Running sudo ..."
-	sudo apt install -y kconfig-frontends genromfs xxd git
-else
-	apt update
-	apt install -y kconfig-frontends genromfs xxd git
-endif
+	# suggest installing dependencies
+	@echo "You may need to install dependencies, e.g., on debian 'apt install kconfig-frontends genromfs xxd git'."
 
 	# download nuttx and compile it with the demo apps
 

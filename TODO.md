@@ -1,12 +1,17 @@
 rtmlib2:
 - [ ] rename simplemonitor folder
 - [ ] complete RISC-V NuttX demo (lacks app with pattern)
-- [ ] update "kconfig-frontends genromfs xxd" travis-ci
+- [x] update "kconfig-frontends genromfs xxd" travis-ci
 - [ ] implement riscv clockgettime macro (without OS)
 - [x] implement and automate riscv NuttX unittests (included in Containerfile)
 - [x] implement automated NuttX unit tests for QEMU environment
-- [ ] find the bug in rtmlib (see debug files; perf also provoque it, and not just qemu)
+- [ ] find the bug in rtmlib (see debug files; perf also provoque it, and not just qemu; sounds that the problem is with syncronization)
 - [ ] test a trace with repetitive values (current unittests formulas fail)
 - [ ] test a trace that overlaps (current unittests formulas fail)
-- [X] correct issues with cpp mode (some unittests fail)
-- [ ] implement eventually_less_unbounded
+- [x] remove travis-ci and replace it with github actions
+- [x] add since operator and past eventully support
+- [x] fix issues related to eventually_less_unbounded, decrement_cursor, and synchronize
+- [x] add isRunning, getPeriod and setPeriod methods in periodicmonitor
+- [x] remove % operations
+- [x] add in-between check for until_less
+- [x] implement eventually_less_unbounded and unit tests

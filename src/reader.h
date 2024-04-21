@@ -134,7 +134,9 @@ RTML_reader<B>::pull(typename B::event_t &event) {
       return BUFFER_READ;
 
     // update local bottom
-    bottom = (size_t)(bottom + 1) % (buffer.size + 1);
+    //bottom = (size_t)(bottom + 1) % (buffer.size + 1);
+    if (++bottom > buffer.size) // [TODO: >= ? ]
+      bottom = 0;
     // use last known timestamp (delta bigger than one helps to find the right
     // timestamp)
     if (buffer.read(event_next, bottom) == buffer.OK) {

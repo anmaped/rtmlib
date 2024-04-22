@@ -99,9 +99,6 @@ COPY examples /rtmlib/examples
 COPY src /rtmlib/src
 COPY tests /rtmlib/tests
 
-# make examples
-RUN cd /rtmlib/examples && make
-
 #
 # make and run rtmlib tests (x86)
 #
@@ -195,3 +192,6 @@ RUN cd /rtmlib/thirdparty/nuttx \
        EXTRA_OBJS="/rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o"
 
 RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
+
+# make examples
+RUN cd /rtmlib/examples && make

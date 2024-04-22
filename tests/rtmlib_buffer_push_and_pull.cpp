@@ -82,7 +82,7 @@ int rtmlib_buffer_push_and_pull() {
   for (i = 0; i < 101; i++) {
     nodex.set(ID, i);
 
-    if (i >= 98)
+    if (i >= buf.size_util - 2)
       assert(buf.push(nodex) == buf.BUFFER_OVERFLOW);
     else
       assert(buf.push(nodex) == buf.OK);
@@ -92,10 +92,10 @@ int rtmlib_buffer_push_and_pull() {
     Event<int> _ev;
     buf.read(_ev, 0);
     return _ev.getTime();
-  }() == 97);
+  }() == buf.size_util - 3);
 
   for (i = 0; i < 110; i++) {
-    if (i >= 100)
+    if (i >= buf.size_util)
       assert(buf.pull(nodex) == buf.EMPTY);
     else
       assert(buf.pull(nodex) == buf.OK);

@@ -49,6 +49,24 @@ private:
    */
   ATOMIC_PAGE_SWAP();
 
+  /**
+   * Increment top of the writer
+   */
+  size_t &increment_writer_top(size_t &t) {
+    if (++t >= buffer.size)
+      t = 0;
+    return t;
+  };
+
+  /**
+   * Increment bottom of the writer
+   */
+  size_t &increment_writer_bottom(size_t &b) {
+    if (++b >= buffer.size)
+      b = 0;
+    return b;
+  };
+
 public:
   /**
    * Instantiates a new RTML_writer.
@@ -83,12 +101,12 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
     event.setTime(timestamp);
 
     top = stateref->top;
-    stateref->top = ((size_t)(stateref->top + 1) % (buffer.size + 1));
+    increment_writer_top(stateref->top);
 
     bool p = stateref->top == stateref->bottom;
 
     if (p)
-      stateref->bottom = ((size_t)(stateref->bottom + 1) % (buffer.size + 1));
+      increment_writer_bottom(stateref->bottom);
 
     err = (p) ? buffer.BUFFER_OVERFLOW : buffer.OK;
   });

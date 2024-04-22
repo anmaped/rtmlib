@@ -53,6 +53,37 @@ protected:
    */
   timespanw timestamp;
 
+  /**
+   * Decrement top of the reader
+   */
+  size_t &decrement_reader_top() {
+    if (top == 0)
+      top = buffer.size - 1;
+    else
+      --top;
+    return top;
+  };
+
+  /**
+   * Increment bottom of the reader
+   */
+  size_t &increment_reader_bottom() {
+    if (++bottom >= buffer.size)
+      bottom = 0;
+    return bottom;
+  };
+
+  /**
+   * Decrement bottom of the reader
+   */
+  size_t &decrement_reader_bottom() {
+    if (bottom == 0)
+      bottom = buffer.size - 1;
+    else
+      --bottom;
+    return bottom;
+  };
+
 public:
   typedef B buffer_t;
 
@@ -60,8 +91,10 @@ public:
     AVAILABLE = 0,
     UNAVAILABLE,
     READER_OVERFLOW,
-    BUFFER_READ
+    READ_ERROR
   } error_t;
+
+  typedef enum { NO_GAP = 0, GAP, UNKNOWN_GAP } gap_error_t;
 
   /**
    * Constructs a new RTML_reader.
@@ -93,7 +126,7 @@ public:
    *
    * @return true if the RTML_reader have been synchronized, false otherwise.
    */
-  bool synchronize();
+  gap_error_t synchronize();
 
   /**
    * Detects a gap. It compares the current RTML_reader absolute timestamp with
@@ -101,7 +134,7 @@ public:
    *
    * @return true if there is a gap in the buffer, false otherwise.
    */
-  bool gap() const;
+  gap_error_t gap() const;
 
   /**
    * Get reader length
@@ -125,33 +158,34 @@ typename RTML_reader<B>::error_t
 RTML_reader<B>::pull(typename B::event_t &event) {
 
   typename B::event_t event_next;
+  const int delta = 1;
 
-  int delta = 2;
-  bool av = false;
   if (length() > delta) {
     // read in an atomic way
     if (buffer.read(event, bottom) != buffer.OK)
-      return BUFFER_READ;
+      return READ_ERROR;
 
     // update local bottom
-    //bottom = (size_t)(bottom + 1) % (buffer.size + 1);
-    if (++bottom > buffer.size) // [TODO: >= ? ]
-      bottom = 0;
-    // use last known timestamp (delta bigger than one helps to find the right
-    // timestamp)
+    increment_reader_bottom();
+
+    DEBUGV3("pull-> length=%lu bottom=%lu top=%lu\n", length(), bottom, top);
+
+    // use last known timestamp (delta bigger than one may help to find the
+    // right timestamp)
     if (buffer.read(event_next, bottom) == buffer.OK) {
       timestamp = event_next.getTime();
-    }
 
-    av = true;
+      if (gap())
+        return READER_OVERFLOW;
+      else
+        return AVAILABLE;
+    } else {
+      decrement_reader_bottom();
+      return READ_ERROR;
+    }
   }
 
-  DEBUGV3("pull-> length=%lu bottom=%lu top=%lu\n", length(), bottom, top);
-
-  if (gap())
-    return READER_OVERFLOW;
-  else
-    return (length() > delta || av) ? AVAILABLE : UNAVAILABLE;
+  return UNAVAILABLE;
 }
 
 template <typename B>
@@ -159,26 +193,26 @@ typename RTML_reader<B>::error_t
 RTML_reader<B>::pop(typename B::event_t &event) {
 
   if (length() > 0) {
-    if (top - 1 > 0)
-      buffer.read(event, --top);
-    else if (top - 1 <= 0) {
-      top = buffer.size;
-      buffer.read(event, top);
-    }
+    decrement_reader_top();
+    if (buffer.read(event, top) != buffer.OK)
+      return READ_ERROR;
+
+    if (gap())
+      return READER_OVERFLOW;
+    else
+      return AVAILABLE;
   }
 
   DEBUGV3("pop-> %d (%d,%d)\n", length(), bottom, top);
 
-  if (gap())
-    return READER_OVERFLOW;
-  else
-    return (length() > 0) ? AVAILABLE : UNAVAILABLE;
+  return UNAVAILABLE;
 }
 
-template <typename B> bool RTML_reader<B>::synchronize() {
+template <typename B>
+typename RTML_reader<B>::gap_error_t RTML_reader<B>::synchronize() {
   /*
    * The synchronization depends on the buffer state. Any event that is
-   * overwritten without being read is a gap for the reader.
+   * overwritten without being read is identified as a gap for the reader.
    */
 
   size_t b, t;
@@ -202,48 +236,51 @@ template <typename B> bool RTML_reader<B>::synchronize() {
    *
    */
 
-  DEBUGV("sync: %d %d %d %d %d | %d %d %d\n", t < b, b < t,
+  DEBUGV("sync: %d %d %d %d %d | (%d,%d) %d %d\n", t < b, b < t,
          0 < timestamp && timestamp < ts, ts_t < timestamp,
-         ts < timestamp && timestamp < ts_t, bottom, b, t);
+         ts < timestamp && timestamp < ts_t, bottom, top, b, t);
 
   if (t < b) {
+    DEBUGV("1-> t < b (with overlap)\n");
     if ((0 < timestamp && timestamp < ts) || (ts_t < timestamp)) {
       /*
        * This can be triggered in the begining to syncronize the reader for the
        * first time.
        */
-      if (gap()) {
+      if (gap() == GAP) {
         top = t;
         bottom = b;
         timestamp = ts;
-        return true;
+        return GAP;
       }
       // update top (no gap found)
       top = t;
-      return false; // SOFT_SYNC
+      return NO_GAP; // SOFT_SYNC
     } else {
       // reader is out of sync
       top = t;
       bottom = b;
       timestamp = ts;
 
-      return true; // HARD_SYNC
+      return GAP; // HARD_SYNC
     }
   } else if (b < t) {
+    DEBUGV("2-> b < t (without overlap)\n");
     if (ts < timestamp && timestamp < ts_t) {
       // update top (no gap found)
       top = t;
 
-      return false; // SOFT_SYNC
+      return NO_GAP; // SOFT_SYNC
     } else {
       // reader is out of sync
       top = t;
       bottom = (b < bottom && b < t) ? bottom : b;
       timestamp = (b < bottom && b < t) ? timestamp : ts;
 
-      return true; // HARD_SYNC
+      return GAP; // HARD_SYNC
     }
   } else {
+    DEBUGV("3-> b == t (initial case)\n");
     /*
      * This can also be triggered in the begining to syncronize the reader for
      * the first time.
@@ -253,29 +290,34 @@ template <typename B> bool RTML_reader<B>::synchronize() {
       bottom = b;
       timestamp = ts;
 
-      return true; // INIT SYNC
+      return GAP; // INIT SYNC
     } else {
-      // (t == b) should not happen
-      while (true) {
-      }
+      // this case should not happen
+      DEBUGV("## unknown gap ## t == b && !(top == 0 && bottom == 0)\n");
+      return UNKNOWN_GAP;
     }
   }
 }
 
-template <typename B> bool RTML_reader<B>::gap() const {
+template <typename B>
+typename RTML_reader<B>::gap_error_t RTML_reader<B>::gap() const {
   typename B::event_t event;
 
   // detect a gap
-  buffer.read(event, bottom);
-  if (timestamp < event.getTime())
-    return true;
+  if (buffer.read(event, bottom) == buffer.OK) {
+    if (timestamp < event.getTime())
+      return GAP;
+  } else {
+    // this case should not happen
+    DEBUGV("## unknown gap ## buffer read!\n");
+    return UNKNOWN_GAP;
+  }
 
-  return false;
+  return NO_GAP;
 }
 
 template <typename B> size_t RTML_reader<B>::length() const {
-  return (top >= bottom) ? top - bottom + 1
-                         : (buffer.size + 1) - (bottom - top);
+  return (top >= bottom) ? top - bottom : (buffer.size) - (bottom - top);
 }
 
 template <typename B> void RTML_reader<B>::debug() const {

@@ -54,7 +54,7 @@ int rtmlib_reader_and_writer() {
   for (i = 0; i < 111; i++) {
     nodex.set(ID, i);
 
-    if (i >= 100)
+    if (i >= buf.size_util)
       assert(buf.push(nodex) == buf.BUFFER_OVERFLOW);
     else
       assert(buf.push(nodex) == buf.OK);
@@ -62,9 +62,9 @@ int rtmlib_reader_and_writer() {
 
   Event<int> node1 = Event<int>();
 
-  assert(reader.pull(node1) == reader.READER_OVERFLOW);
+  assert(reader.pull(node1) == reader.UNAVAILABLE);
 
-  assert(reader.pop(node1) == reader.READER_OVERFLOW);
+  assert(reader.pop(node1) == reader.UNAVAILABLE);
 
   assert(reader.gap() == true);
 
@@ -75,7 +75,7 @@ int rtmlib_reader_and_writer() {
   // pop all before use atomic write and avoid an infinite loop
   for (i = 0; i < 111; i++) {
 
-    if (i >= 100)
+    if (i >= buf.size_util)
       assert(buf.pop(nodex) == buf.EMPTY);
     else
       assert(buf.pop(nodex) == buf.OK);
@@ -91,10 +91,10 @@ int rtmlib_reader_and_writer() {
   for (j = 0; j < 111; j++) {
     nodey.set(ID, j);
 
-    if (j >= 100)
+    if (j >= buf.size_util)
       assert(writer.push(nodey) == buf.BUFFER_OVERFLOW);
 
-    if (j < 100)
+    if (j < buf.size_util)
       assert(writer.push(nodey) == buf.OK);
   }
 

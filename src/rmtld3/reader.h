@@ -204,7 +204,7 @@ RMTLD3_reader<R, P>::pull(typename R::buffer_t::event_t &e) {
   if (length() > 0) {
     // read in an atomic way
     if (R::buffer.read(e, cursor) != R::buffer.OK)
-      return R::BUFFER_READ;
+      return R::READ_ERROR;
 
     increment_cursor();
   }
@@ -252,7 +252,7 @@ RMTLD3_reader<R, P>::read_previous(typename R::buffer_t::event_t &e) {
 
 template <typename R, typename P> size_t RMTLD3_reader<R, P>::length() const {
   return (R::top >= cursor) ? R::top - cursor
-                            : (R::buffer.size + 1) - (cursor - R::top);
+                            : R::buffer.size - (cursor - R::top);
 }
 
 template <typename R, typename P> size_t RMTLD3_reader<R, P>::consumed() const {

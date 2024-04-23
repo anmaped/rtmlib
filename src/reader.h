@@ -219,51 +219,25 @@ typename RTML_reader<B>::gap_error_t RTML_reader<B>::synchronize() {
   timespanw ts, ts_t;
   buffer.state(b, t, ts, ts_t);
 
-  DEBUGV("reader ts:%lu buffer ts:%lu\n", timestamp, ts);
-
-  /*
-   *
-   * Example:
-   *
-   * ts(reader.bottom) < ts(buffer.b) > ts(buffer.t)
-   * 7                   9              8
-   * (t < b) implies (0 < ts(bottom) < ts(b)) or (ts(t) < ts(bottom)  <
-   *  buffer.size)
-   *
-   * (b < t) implies (ts(b) < ts(bottom) < ts(t))
-   *
-   * (t == b) should not happen
-   *
-   */
-
-  DEBUGV("sync: %d %d %d %d %d | (%d,%d) %d %d\n", t < b, b < t,
-         0 < timestamp && timestamp < ts, ts_t < timestamp,
-         ts < timestamp && timestamp < ts_t, bottom, top, b, t);
+  DEBUGV("sync: if_branch=(%d, %d, %d), (b,t)=(%u,%u) ts=%lu, ts_t=%lu, "
+         "timestamp=%lu, (bottom,top)=(%u,%u)\n",
+         t < b, b < t, t == b, b, t, ts, ts_t, timestamp, bottom, top);
 
   if (t < b) {
     DEBUGV("1-> t < b (with overlap)\n");
-    if ((0 < timestamp && timestamp < ts) || (ts_t < timestamp)) {
-      /*
-       * This can be triggered in the begining to syncronize the reader for the
-       * first time.
-       */
-      if (gap() == GAP) {
-        top = t;
-        bottom = b;
-        timestamp = ts;
-        return GAP;
-      }
-      // update top (no gap found)
-      top = t;
-      return NO_GAP; // SOFT_SYNC
-    } else {
-      // reader is out of sync
+    
+    if (gap() == GAP) {
+      DEBUGV("gap!\n");
       top = t;
       bottom = b;
       timestamp = ts;
-
-      return GAP; // HARD_SYNC
+      return GAP;
     }
+    
+    // update top (no gap found)
+    top = t;
+    return NO_GAP; // SOFT_SYNC
+
   } else if (b < t) {
     DEBUGV("2-> b < t (without overlap)\n");
     if (ts < timestamp && timestamp < ts_t) {
@@ -282,7 +256,7 @@ typename RTML_reader<B>::gap_error_t RTML_reader<B>::synchronize() {
   } else {
     DEBUGV("3-> b == t (initial case)\n");
     /*
-     * This can also be triggered in the begining to syncronize the reader for
+     * This can be triggered in the begining to syncronize the reader for
      * the first time.
      */
     if (top == 0 && bottom == 0) {
@@ -292,7 +266,7 @@ typename RTML_reader<B>::gap_error_t RTML_reader<B>::synchronize() {
 
       return GAP; // INIT SYNC
     } else {
-      // this case should not happen
+      // this case should not happen anymore
       DEBUGV("## unknown gap ## t == b && !(top == 0 && bottom == 0)\n");
       return UNKNOWN_GAP;
     }

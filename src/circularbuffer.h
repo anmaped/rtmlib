@@ -55,7 +55,7 @@ private:
   T array[N + 2];
 
   /**
-   * The circular buffer contains a top and a bottom
+   * The top of the circular buffer
    */
   size_t __top;
 
@@ -65,9 +65,10 @@ private:
   size_t __bottom;
 
   /**
-   * The writer flag that indicates if a writer has been attached.
+   * The writer count variable that indicates the number of writers that have
+   * been attached.
    */
-  bool writer;
+  uint8_t writer; // max 255
 
   /**
    * Increment top of the buffer
@@ -102,8 +103,8 @@ private:
   };
 
 public:
-  const size_t size = N;
-  const size_t size_util = N - 1;
+  const size_t size = N + 1;
+  const size_t size_util = N;
 
   typedef T event_t;
 
@@ -166,10 +167,17 @@ public:
    * Copy
    */
   RTML_buffer &operator=(const RTML_buffer &);
+
+  /**
+   * Increment writer counter
+   */
+  void increment_writer() {
+    writer++;
+  }
 };
 
 template <typename T, size_t N>
-RTML_buffer<T, N>::RTML_buffer() : __top(0), __bottom(0), writer(false) {}
+RTML_buffer<T, N>::RTML_buffer() : __top(0), __bottom(0), writer(0) {}
 
 template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
@@ -191,7 +199,7 @@ RTML_buffer<T, N>::push(const event_t &node) {
 
   DEBUGV3("push-> %d (%d,%d) r:%d\n", length(), b, t, p);
 
-  return (p) ? BUFFER_OVERFLOW : ((writer) ? UNSAFE : OK);
+  return (p) ? BUFFER_OVERFLOW : (writer > 1 ? UNSAFE : OK);
 }
 
 template <typename T, size_t N>
@@ -205,7 +213,7 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pull(event_t &event) {
   DEBUGV3("pull-> %d (%d,%d) r:%d e:%d\n", length(), _bottom(), _top(), c,
           event.getTime());
 
-  return c ? ((writer) ? UNSAFE : OK) : EMPTY;
+  return c ? (writer > 1 ? UNSAFE : OK) : EMPTY;
 }
 
 template <typename T, size_t N>
@@ -219,7 +227,7 @@ typename RTML_buffer<T, N>::error_t RTML_buffer<T, N>::pop(event_t &event) {
   DEBUGV3("pop-> %d (%d,%d) r:%d e:%d\n", length(), _bottom(), _top(), c,
           event.getTime());
 
-  return c ? ((writer) ? UNSAFE : OK) : EMPTY;
+  return c ? (writer > 1 ? UNSAFE : OK) : EMPTY;
 }
 
 template <typename T, size_t N>
@@ -279,7 +287,8 @@ template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
       "[STATE] bottom=0x%x top=0x%x timestamp=[0x%x,0x%x] timestamp=%luns\n", b,
       t, L(ts >> 32), L(ts), L(ts));
 
-  DEBUGV3("[CONTENT]");
+  DEBUGV3("[CONTENT]\n");
+  DEBUGV3("----------\n");
   for (unsigned int idx = 0; idx < size + 2; idx++) {
     if (idx % 2 == 0)
       DEBUGV3_APPEND("\n");
@@ -287,6 +296,7 @@ template <typename T, size_t N> void RTML_buffer<T, N>::debug() const {
   }
 
   DEBUGV3_APPEND("\n");
+  DEBUGV3("__________\n");
 }
 
 template <typename T, size_t N>

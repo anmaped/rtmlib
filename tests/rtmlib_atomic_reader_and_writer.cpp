@@ -63,7 +63,7 @@ int rtmlib_atomic_reader_and_writer() {
            (uint32_t)node1.getTime(), (uint32_t)__out, (uint32_t)buf.length(),
            (size_t)reader_1.length(), (uint32_t)count, (uint32_t)gap);
 
-    if (__out == reader_1.AVAILABLE || __out == reader_1.READER_OVERFLOW) {
+    if (__out == reader_1.AVAILABLE) {
       assert(node1.getData() == count);
       count++;
     }
@@ -94,7 +94,7 @@ int rtmlib_atomic_reader_and_writer() {
            (uint32_t)node1.getTime(), (uint32_t)__out, (uint32_t)buf.length(),
            (size_t)reader_2.length(), (uint32_t)count, (uint32_t)gap);
 
-    if (__out == reader_2.AVAILABLE || __out == reader_2.READER_OVERFLOW) {
+    if (__out == reader_2.AVAILABLE) {
       assert(node1.getData() == count);
       count++;
     }

@@ -66,11 +66,11 @@ int rtmlib_reader_and_writer() {
 
   assert(reader.pop(node1) == reader.UNAVAILABLE);
 
-  assert(reader.gap() == true);
+  assert(reader.gap() == reader.GAP);
 
-  assert(reader.synchronize() == true);
+  assert(reader.synchronize() == reader.GAP);
 
-  assert(reader.gap() == false);
+  assert(reader.gap() == reader.NO_GAP);
 
   // pop all before use atomic write and avoid an infinite loop
   for (i = 0; i < 111; i++) {

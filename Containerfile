@@ -193,5 +193,7 @@ RUN cd /rtmlib/thirdparty/nuttx \
 
 RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
 
+#
 # make examples
+#
 RUN cd /rtmlib/examples && make

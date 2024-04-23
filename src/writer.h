@@ -84,7 +84,9 @@ public:
 };
 
 template <typename B>
-RTML_writer<B>::RTML_writer(B &_buffer) : buffer(_buffer) {}
+RTML_writer<B>::RTML_writer(B &_buffer) : buffer(_buffer) {
+  buffer.increment_writer();
+}
 
 template <typename B>
 typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
@@ -109,9 +111,10 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
       increment_writer_bottom(stateref->bottom);
 
     err = (p) ? buffer.BUFFER_OVERFLOW : buffer.OK;
+
+    buffer.write(event, top);
   });
 
-  buffer.write(event, top);
 #endif
 
   return err;

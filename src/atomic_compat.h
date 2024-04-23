@@ -88,6 +88,9 @@ typedef unsigned int uint32_t;
 #define NATIVE_POINTER_TYPE uint64_t
 #define NATIVE_ATOMIC_POINTER uint64_t
 
+#define YIELD()                                                                \
+  { pthread_yield(); }
+
 union page_t {
   NATIVE_ATOMIC_POINTER wide_uniqueid;
   struct {
@@ -126,6 +129,9 @@ union page_t {
 #define NATIVE_POINTER_TYPE uint32_t
 #define NATIVE_ATOMIC_POINTER uint32_t
 
+#define YIELD()                                                                \
+  { pthread_yield(); }
+
 union page_t {
   NATIVE_ATOMIC_POINTER wide_uniqueid;
   struct {
@@ -158,6 +164,8 @@ union page_t {
 #elif defined(__x86_64__)
 #define NATIVE_POINTER_TYPE uint64_t
 #define NATIVE_ATOMIC_POINTER __int128
+#define YIELD()                                                                \
+  { sched_yield(); }
 #endif
 
 /*
@@ -227,7 +235,7 @@ union page_t {
   do {                                                                         \
     if (fail) {                                                                \
       /* do a yield here */                                                    \
-      pthread_yield();                                                         \
+      YIELD();                                                                 \
       fail = false;                                                            \
     }                                                                          \
                                                                                \
@@ -240,7 +248,7 @@ union page_t {
     DEBUGV("%lu\n", ((state_t *)current_page_content.stateref)->pos);          \
     if (!(((state_t *)current_page_content.stateref)->event == evt)) {         \
       /* do a yield here */                                                    \
-      pthread_yield();                                                         \
+      YIELD();                                                                 \
       goto complete;                                                           \
     }                                                                          \
                                                                                \

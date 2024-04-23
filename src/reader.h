@@ -267,7 +267,7 @@ typename RTML_reader<B>::gap_error_t RTML_reader<B>::synchronize() {
       return GAP; // INIT SYNC
     } else {
       // this case should not happen anymore
-      DEBUGV("## unknown gap ## t == b && !(top == 0 && bottom == 0)\n");
+      DEBUGV_ERROR("## unknown gap ## t == b && !(top == 0 && bottom == 0)\n");
       return UNKNOWN_GAP;
     }
   }

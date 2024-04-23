@@ -29,7 +29,7 @@
 #include <cstring>
 #define MEMCPY(x, y, z) std::memcpy(x, y, z)
 #else
-#error "There is not memcpy implementation!"
+#warning "There is not memcpy implementation!"
 #endif
 
 /**

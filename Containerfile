@@ -99,6 +99,18 @@ COPY examples /rtmlib/examples
 COPY src /rtmlib/src
 COPY tests /rtmlib/tests
 
+
+# install extra dependencies to build NuttX (examples included)
+RUN apt install -y \
+    kconfig-frontends \
+    genromfs \
+    xxd
+
+#
+# make examples
+#
+RUN cd /rtmlib/examples && make
+
 #
 # make and run rtmlib tests (x86)
 #
@@ -157,12 +169,6 @@ RUN qemu-system-riscv64 -M virt -cpu rv64 -m 512M -smp 2 -monitor none -nographi
 
 # with NuttX
 
-# install extra dependencies to build NuttX
-RUN apt install -y \
-    kconfig-frontends \
-    genromfs \
-    xxd
-
 # configure and build config.h
 RUN cd /rtmlib/thirdparty/nuttx \
     && ./tools/configure.sh -a ../nuttx-apps rv-virt:nsh64 \
@@ -192,8 +198,3 @@ RUN cd /rtmlib/thirdparty/nuttx \
        EXTRA_OBJS="/rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o"
 
 RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
-
-#
-# make examples
-#
-RUN cd /rtmlib/examples && make

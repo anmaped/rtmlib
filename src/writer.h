@@ -111,9 +111,9 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
       increment_writer_bottom(stateref->bottom);
 
     err = (p) ? buffer.BUFFER_OVERFLOW : buffer.OK;
-
-    buffer.write(event, top);
   });
+
+  buffer.write(event, top);
 
 #endif
 

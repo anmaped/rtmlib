@@ -5,7 +5,7 @@ rtmlib2:
 - [ ] implement riscv clockgettime macro (without OS)
 - [x] implement and automate riscv NuttX unittests (included in Containerfile)
 - [x] implement automated NuttX unit tests for QEMU environment
-- [ ] find the bug in rtmlib (see debug files; perf also provoque it, and not just qemu; sounds that the problem is with syncronization)
+- [x] find the bug in rtmlib (see debug files; perf also provoque it, and not just qemu; sounds that the problem is with syncronization)
 - [ ] test a trace with repetitive values (current unittests formulas fail)
 - [ ] test a trace that overlaps (current unittests formulas fail)
 - [x] remove travis-ci and replace it with github actions

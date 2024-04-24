@@ -356,7 +356,7 @@ three_valued_type since_less(T &trace, timespan &t) {
       if (c_time == t) /* since semantics is strict and non-matching */
         continue;
 
-      if (c_time <= t - b) /* Check: < or <= */
+      if (t>=b && c_time <= t - b)
         break;
 
       symbol = eval_b(trace, c_time, symbol);
@@ -412,7 +412,7 @@ three_valued_type pasteventually_equal(T &trace, timespan &t) {
     if (c_time == t) /* since semantics is strict and non-matching */
       continue;
 
-    if (c_time <= t - b)
+    if (t>=b && c_time <= t - b)
       break;
 
     size_t c = trace.get_cursor();

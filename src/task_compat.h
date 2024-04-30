@@ -111,9 +111,9 @@ struct task {
 
   useconds_t period;
 
-  const int sched_policy;
+  int sched_policy;
 
-  const int priority;
+  int priority;
 
   bool running;
 

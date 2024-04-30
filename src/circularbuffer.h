@@ -25,6 +25,8 @@
 #include "debug_compat.h"
 #include "event.h"
 
+#include <cstdint>
+
 #ifndef __HW__
 #include <cstring>
 #define MEMCPY(x, y, z) std::memcpy(x, y, z)

@@ -87,6 +87,10 @@ duration duration_term(T &trace, timespan &t) {
                   c_time_prev, c_time);
   }
 
+  // we may have more symbols to see (no conclusion)
+  if (event.getTime() <= t + t_upper) // [TODO: < or <= ?]
+    acc.second = true;
+
   trace.set_cursor(c_duration); // reset the cursor changes during the evaluation of the subformula
 
   return acc;

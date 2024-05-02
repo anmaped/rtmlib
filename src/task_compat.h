@@ -77,11 +77,11 @@ struct task {
 
   char const *tid;
 
-  const useconds_t period;
+  useconds_t period;
 
-  const int sched_policy;
+  int sched_policy;
 
-  const int priority;
+  int priority;
 
   bool running;
 
@@ -111,9 +111,9 @@ struct task {
 
   useconds_t period;
 
-  int sched_policy;
+  const int sched_policy;
 
-  int priority;
+  const int priority;
 
   bool running;
 

@@ -27,7 +27,7 @@
 #include "pattern.h"
 #include "rmtld3.h"
 
-template <typename R, typename P> class RMTLD3_reader : public R {
+template <typename R, typename P = size_t> class RMTLD3_reader : public R {
 
   /**
    * Cursor between bottom and top of the reader
@@ -43,6 +43,8 @@ public:
   /**
    * Constructor
    */
+  RMTLD3_reader(const typename R::buffer_t &_buffer)
+      : R(_buffer), lmem(cursor), cursor(0){};
   RMTLD3_reader(const typename R::buffer_t &_buffer, P &_lmem)
       : R(_buffer), lmem(_lmem), cursor(0){};
 
@@ -123,21 +125,27 @@ typename R::error_t RMTLD3_reader<R, P>::reset() {
 template <typename R, typename P>
 typename R::error_t RMTLD3_reader<R, P>::set(timespan &t) {
 
-  typename R::buffer_t::event_t e;
+  typename R::buffer_t::event_t e, ee;
 
-  while (read_previous(e) == R::AVAILABLE) {
+  while (read_previous(e) == R::AVAILABLE && read(ee) == R::AVAILABLE) {
 
-    if (t > e.getTime())
+    printf("--- %lu %lu\n", e.getTime(), ee.getTime());
+
+    if (e.getTime() <= t && t < ee.getTime()) {
       return R::AVAILABLE;
+    }
 
     decrement_cursor();
     DEBUGV_RMTLD3("backward cursor=%d\n", cursor);
   }
 
-  while (read_next(e) == R::AVAILABLE) {
+  while (read(ee) == R::AVAILABLE && read_next(e) == R::AVAILABLE) {
 
-    if (t < e.getTime())
+    printf("--- %lu %lu\n", ee.getTime(), e.getTime());
+
+    if (ee.getTime() <= t && t < e.getTime()) {
       return R::AVAILABLE;
+    }
 
     increment_cursor();
     DEBUGV_RMTLD3("forward cursor=%d\n", cursor);
@@ -264,10 +272,10 @@ template <typename R, typename P> void RMTLD3_reader<R, P>::debug() const {
   typename R::buffer_t::event_t e;
   for (size_t i = 0; i < R::buffer.size; i++) {
     R::buffer.read(e, i);
-    DEBUGV_RMTLD3("(%d,%d),", e.getData(), e.getTime());
+    DEBUGV_RMTLD3("(%d,%lu),", e.getData(), e.getTime());
   }
   DEBUGV_RMTLD3("\n");
-  DEBUGV_RMTLD3("bottom=%d top=%d timestamp=%d | cursor=%d \n", R::bottom,
+  DEBUGV_RMTLD3("bottom=%d top=%d timestamp=%lu | cursor=%d \n", R::bottom,
                 R::top, R::timestamp, cursor);
 }
 

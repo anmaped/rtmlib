@@ -145,6 +145,7 @@ int RTML_monitor::enable() {
 int RTML_monitor::disable() {
 
   // [TODO: check status]
+  _task.st = ABORT;
 
   return P_OK;
 }

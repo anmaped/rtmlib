@@ -27,13 +27,6 @@
 
 #include <cstdint>
 
-#ifndef __HW__
-#include <cstring>
-#define MEMCPY(x, y, z) std::memcpy(x, y, z)
-#else
-#warning "There is not memcpy implementation!"
-#endif
-
 /**
  * RTML_buffer implements a circular buffer. This buffer is the support
  * for RTML_reader and RTML_writer classes. For instance, The monitor uses

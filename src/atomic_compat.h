@@ -281,4 +281,11 @@ union page_t {
 
 #endif
 
+#ifndef __HW__
+#include <cstring>
+#define MEMCPY(x, y, z) std::memcpy(x, y, z)
+#else
+#warning "There is not memcpy implementation!"
+#endif
+
 #endif //_ATOMIC_COMPAT_H_

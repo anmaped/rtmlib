@@ -164,7 +164,7 @@ three_valued_type until_less(T &trace, timespan &t) {
 
   std::pair<four_valued_type, timespan> eval_c = eval_fold(trace, t);
 
-  DEBUGV_RMTLD3("@(---) until_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
+  DEBUGV_RMTLD3("@(---) until_op (%s) enough(%lu)=%d.\n", out_fv(eval_c.first),
                 eval_c.second, eval_c.second < t + b);
 
   trace.set_cursor(c_until); // reset the cursor changes during the evaluation
@@ -227,7 +227,7 @@ three_valued_type eventually_less_unbounded(T &trace, timespan &t) {
   size_t c_eventually = trace.get_cursor();
 
   while (true) {
-    DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+    DEBUGV_RMTLD3("t=%d c_time=%lu len=%d\n", t, c_time, trace.length());
 
     trace.read(event);
     c_time = event.getTime();
@@ -348,7 +348,7 @@ three_valued_type since_less(T &trace, timespan &t) {
     typename T::buffer_t::event_t event;
 
     do {
-      DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+      DEBUGV_RMTLD3("t=%d c_time=%lu len=%d\n", t, c_time, trace.length());
 
       trace.read(event);
       c_time = event.getTime();
@@ -379,7 +379,7 @@ three_valued_type since_less(T &trace, timespan &t) {
 
   std::pair<four_valued_type, timespan> eval_c = eval_fold(trace, t);
 
-  DEBUGV_RMTLD3("@(---) since_op (%s) enough(%d)=%d.\n", out_fv(eval_c.first),
+  DEBUGV_RMTLD3("@(---) since_op (%s) enough(%lu)=%d.\n", out_fv(eval_c.first),
                 eval_c.second, eval_c.second < t + b);
 
   trace.set_cursor(c_until); // reset the cursor changes during the evaluation
@@ -404,7 +404,7 @@ three_valued_type pasteventually_equal(T &trace, timespan &t) {
   size_t c_pasteventually = trace.get_cursor();
 
   do {
-    DEBUGV_RMTLD3("t=%d c_time=%d len=%d\n", t, c_time, trace.length());
+    DEBUGV_RMTLD3("t=%d c_time=%lu len=%d\n", t, c_time, trace.length());
 
     trace.read(event);
     c_time = event.getTime();

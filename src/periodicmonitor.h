@@ -45,7 +45,7 @@ extern "C" void __cxa_pure_virtual() {
  * @author André Pedro
  * @date
  */
-class RTML_monitor {
+template <char... name> class RTML_monitor {
 private:
   /** Points to the monitor thread in the OS. */
   __task _task;
@@ -70,6 +70,9 @@ protected:
   virtual void run() = 0;
 
 public:
+  /** Stores id */
+  const char id[5] = {name...};
+
   /**
    * Instantiates a new monitor with a given period.
    *
@@ -119,41 +122,50 @@ public:
   void setPeriod(const useconds_t &p);
 };
 
-RTML_monitor::RTML_monitor(const useconds_t period)
-    : _task(task("loop", loop, 50, SCHED_OTHER, period, this)) {}
+template <char... name>
+RTML_monitor<name...>::RTML_monitor(const useconds_t period)
+    : _task(task(id, loop, 50, SCHED_OTHER, period, this)) {}
 
-RTML_monitor::RTML_monitor(const useconds_t period,
-                           unsigned int schedule_policy, unsigned int priority)
-    : _task(task("loop", loop, priority, schedule_policy, period, this)) {}
+template <char... name>
+RTML_monitor<name...>::RTML_monitor(const useconds_t period,
+                                    unsigned int schedule_policy,
+                                    unsigned int priority)
+    : _task(task(id, loop, priority, schedule_policy, period, this)) {}
 
-void *RTML_monitor::loop(void *ptr) {
-  RTML_monitor *monitor = (RTML_monitor *)ptr;
+template <char... name> void *RTML_monitor<name...>::loop(void *ptr) {
+  RTML_monitor<name...> *monitor = (RTML_monitor *)ptr;
   monitor->run();
 
   return NULL;
 }
 
-int RTML_monitor::enable() {
+template <char... name> int RTML_monitor<name...>::enable() {
 
-  ::printf("RTML_monitor started!\n");
+  if (_task.st != ACTIVATION)
+    _task.st = ACTIVATION;
 
-  // [TODO: check status]
+  return P_OK;
+}
+template <char... name> int RTML_monitor<name...>::disable() {
+
+  if (_task.st != ABORT)
+    _task.st = ABORT;
 
   return P_OK;
 }
 
-int RTML_monitor::disable() {
-
-  // [TODO: check status]
-  _task.st = ABORT;
-
-  return P_OK;
+template <char... name> bool RTML_monitor<name...>::isRunning() const {
+  return !_task.running;
 }
 
-bool RTML_monitor::isRunning() const { return !_task.running; }
+template <char... name>
+const useconds_t &RTML_monitor<name...>::getPeriod() const {
+  return _task.period;
+}
 
-const useconds_t &RTML_monitor::getPeriod() const { return _task.period; }
-
-void RTML_monitor::setPeriod(const useconds_t &p) { _task.period = p; }
+template <char... name>
+void RTML_monitor<name...>::setPeriod(const useconds_t &p) {
+  _task.period = p;
+}
 
 #endif // RTML_PERIODICMONITOR_H

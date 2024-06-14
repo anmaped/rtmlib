@@ -26,17 +26,16 @@ x86_64 GNU/Linux 2024-05-03 18:46. */
       RTML_reader<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>>>>         \
       rtm_mon0(200000, __trace_rtm_monitor_8ea7_0);
 
-template <class T> class Rtm_monitor_8ea7_0 : public RTML_monitor {
+template <class T> class Rtm_monitor_8ea7_0 : public RTML_monitor<'8','e','a','7'> {
 
 private:
   T &trace;
 
 protected:
   three_valued_type _out = T_UNKNOWN;
+  timespan tzero;
 
   void run() {
-
-    static timespan tzero = clockgettime() + 3000000000L;
 
     trace.synchronize();
 
@@ -49,9 +48,13 @@ protected:
 
 public:
   Rtm_monitor_8ea7_0(useconds_t p, T &trc)
-      : RTML_monitor(p, SCHED_FIFO, 50), trace(trc), _out(T_UNKNOWN) {}
+      : RTML_monitor(p, SCHED_FIFO, 50), trace(trc), _out(T_UNKNOWN) {
+    tzero = clockgettime() + 3000000000L;
+  }
   Rtm_monitor_8ea7_0(useconds_t p, T &trc, int sche, int prio)
-      : RTML_monitor(p, sche, prio), trace(trc), _out(T_UNKNOWN) {}
+      : RTML_monitor(p, sche, prio), trace(trc), _out(T_UNKNOWN) {
+    tzero = clockgettime() + 3000000000L;
+  }
 
   three_valued_type &getVeredict() { return _out; }
 };

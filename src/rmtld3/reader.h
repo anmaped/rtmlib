@@ -129,7 +129,7 @@ typename R::error_t RMTLD3_reader<R, P>::set(timespan &t) {
 
   while (read_previous(e) == R::AVAILABLE && read(ee) == R::AVAILABLE) {
 
-    printf("--- %lu %lu\n", e.getTime(), ee.getTime());
+    DEBUGV_RMTLD3("--- %lu %lu\n", e.getTime(), ee.getTime());
 
     if (e.getTime() <= t && t < ee.getTime()) {
       return R::AVAILABLE;
@@ -141,7 +141,7 @@ typename R::error_t RMTLD3_reader<R, P>::set(timespan &t) {
 
   while (read(ee) == R::AVAILABLE && read_next(e) == R::AVAILABLE) {
 
-    printf("--- %lu %lu\n", ee.getTime(), e.getTime());
+    DEBUGV_RMTLD3("--- %lu %lu\n", ee.getTime(), e.getTime());
 
     if (ee.getTime() <= t && t < e.getTime()) {
       return R::AVAILABLE;

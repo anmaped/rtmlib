@@ -166,6 +166,12 @@ struct task {
           struct task *ttask = (struct task *)tsk;
           struct timespec now = {0}, next = {0}, tmp = {0};
 
+          // trap to block task start
+          for (;;) {
+            if(ttask->st == ACTIVATION)
+              break;
+          }
+
           DEBUGV("#Task(%s) is running ...\n", ttask->tid);
 
           // Mutex and conditional variables for pthread_cond_timedwait

@@ -18,9 +18,14 @@ public:
 
   typedef Event<_auto_gen_prop> buffer_t;
 
+  typename T::error_t push(_auto_gen_prop s) {
+    typename T::event_t e = typename T::event_t(s, 0);
+    return w.push(e);
+  };
+
   typename T::error_t push(_auto_gen_prop s, timespan t) {
     typename T::event_t e = typename T::event_t(s, t);
-    return w.push(e);
+    return w.push_all(e);
   };
 
 private:

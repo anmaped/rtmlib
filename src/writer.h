@@ -80,7 +80,14 @@ public:
    *
    * @param data a constant reference to the data to be pushed.
    */
-  typename B::error_t push(typename B::event_t &);
+  typename B::error_t push(typename B::event_t &data);
+
+  /**
+   * force push an event to the Buffer.
+   *
+   * @param data a constant reference to the data to be pushed.
+   */
+  typename B::error_t push_all(typename B::event_t &data);
 };
 
 template <typename B>
@@ -94,7 +101,7 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
   typename B::error_t err;
 
 #if defined(__HW__)
-  err = buffer.push(event);
+#error "Please use push_all instead!"
 #else
   size_t top;
 
@@ -102,6 +109,35 @@ typename B::error_t RTML_writer<B>::push(typename B::event_t &event) {
     timespan timestamp = clockgettime();
     event.setTime(timestamp);
 
+    top = stateref->top;
+    increment_writer_top(stateref->top);
+
+    bool p = stateref->top == stateref->bottom;
+
+    if (p)
+      increment_writer_bottom(stateref->bottom);
+
+    err = (p) ? buffer.BUFFER_OVERFLOW : buffer.OK;
+  });
+
+  buffer.write(event, top);
+
+#endif
+
+  return err;
+}
+
+template <typename B>
+typename B::error_t RTML_writer<B>::push_all(typename B::event_t &event) {
+
+  typename B::error_t err;
+
+#if defined(__HW__)
+  err = buffer.push(event);
+#else
+  size_t top;
+
+  ATOMIC_PUSH({
     top = stateref->top;
     increment_writer_top(stateref->top);
 

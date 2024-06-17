@@ -1,4 +1,6 @@
 
+#ifndef NO_THREADS
+
 #include "custom-rtm-monitor/Rtm_compute_8ea7.h"
 #include "custom-rtm-monitor/Rtm_monitor_8ea7.h"
 
@@ -63,3 +65,17 @@ int rtm_monitor_test1() {
   test1::main();
   return 0;
 }
+
+#else
+
+#include <stdio.h>
+
+extern "C" int rtm_monitor_test1();
+
+int rtm_monitor_test1() {
+  printf("%s \033[0;33mnot applicable.\e[0m\n", __FILE__);
+
+  return 0;
+}
+
+#endif

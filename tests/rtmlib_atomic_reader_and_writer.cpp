@@ -130,9 +130,9 @@ int rtmlib_atomic_reader_and_writer() {
   __attribute__((unused)) __task producer_1 =
       __task("producer1", producer1, PRIO, SCHED_OTHER, 6000);
 
-  consumer_1.st = ACTIVATION;
-  consumer_2.st = ACTIVATION;
-  producer_1.st = ACTIVATION;
+  consumer_1.st = RUNNING;
+  consumer_2.st = RUNNING;
+  producer_1.st = RUNNING;
 
   // random load
   nanosleep((const struct timespec[]){{30, 0L}}, NULL);

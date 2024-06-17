@@ -26,7 +26,7 @@
 #include "task_compat.h"
 #include "time_compat.h"
 
-extern "C" void __cxa_pure_virtual() {
+extern "C" void __attribute__((weak)) __cxa_pure_virtual() {
   while (1)
     ;
 }
@@ -141,8 +141,8 @@ template <char... name> void *RTML_monitor<name...>::loop(void *ptr) {
 
 template <char... name> int RTML_monitor<name...>::enable() {
 
-  if (_task.st != ACTIVATION)
-    _task.st = ACTIVATION;
+  if (_task.st != RUNNING)
+    _task.st = RUNNING;
 
   return P_OK;
 }

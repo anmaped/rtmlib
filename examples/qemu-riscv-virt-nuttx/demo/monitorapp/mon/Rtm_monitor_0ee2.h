@@ -29,7 +29,7 @@ x86_64 GNU/Linux 2023-08-11 23:46. */
       RTML_reader<RTML_buffer<RTML_BUFFER0_TYPE, RTML_BUFFER0_SIZE>>, int>>    \
       rtm_mon0(10000, __trace_rtm_monitor_0ee2_0);
 
-template <class T> class Rtm_monitor_0ee2_0 : public RTML_monitor {
+template <class T> class Rtm_monitor_0ee2_0 : public RTML_monitor<'0'> {
 
 private:
   T &trace;

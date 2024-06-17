@@ -151,8 +151,8 @@ struct task {
 
     DEBUGV_APPEND("\n");
 
-    running = true;
-    st = RUNNING;
+    running = false;
+    st = ACTIVATION;
 
     return 0;
   }
@@ -168,8 +168,10 @@ struct task {
 
           // trap to block task start
           for (;;) {
-            if(ttask->st == ACTIVATION)
+            if(ttask->st == RUNNING) {
+              ttask->running = true;
               break;
+            }
           }
 
           DEBUGV("#Task(%s) is running ...\n", ttask->tid);

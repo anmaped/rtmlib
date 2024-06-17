@@ -5,7 +5,7 @@
 #include "periodicmonitor.h"
 #include "reader.h"
 
-class M_simple : public RTML_monitor {
+class M_simple : public RTML_monitor<'0'> {
 private:
   RTML_reader<RTML_buffer<Event<uint8_t>, 100>> __reader =
       RTML_reader<RTML_buffer<Event<uint8_t>, 100>>(__buffer);

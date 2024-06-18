@@ -35,14 +35,14 @@ MAIN_EPILOGUE:=
 EPILOGUE:=
 
 # Debug Flags
-#DEBUGFLAGS= -DRTMLIB_ENABLE_DEBUG_RMTLD3 -DRTMLIB_ENABLE_DEBUGV_RMTLD3 #-DRTMLIB_DEBUG=3
+#DEBUGFLAGS= -DRTMLIB_ENABLE_DEBUG_RMTLD3 -DRTMLIB_ENABLE_DEBUGV_RMTLD3 #-DRTMLIB_DEBUG=3 -g
 
 ifneq (,$(filter x$(ARCH),x xx86 xx86_64))
 
 # __x86__ (including __x86_64__) Flags
 PREF := 
 CFLAGS = -std=c11
-CXXFLAGS := -std=c++11
+CXXFLAGS := -std=c++11 -g
 CPPFLAGS := -mcx16 -I../src/ ${DEBUGFLAGS} # -mcx16 flag is required for gcc versions <7
 LDFLAGS := -pthread -latomic
 

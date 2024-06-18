@@ -257,7 +257,7 @@ template <typename T, size_t N>
 typename RTML_buffer<T, N>::error_t
 RTML_buffer<T, N>::state(size_t &b, size_t &t, timespanw &ts,
                          timespanw &ts_t) const {
-  ATOMIC_TRIPLE(b, t);
+  state(b, t);
 
   ts = array[b].getTime();
   ts_t = array[t].getTime();

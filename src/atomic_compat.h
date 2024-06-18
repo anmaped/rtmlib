@@ -81,7 +81,7 @@ typedef unsigned int uint32_t;
 #elif defined(__FREERTOS__)
 #include <FreeRTOS_POSIX/sched.h>
 #define pthread_yield() (sched_yield())
-#elif defined(__NUTTX__)
+#elif defined(__NuttX__)
 #include <pthread.h>
 #endif
 

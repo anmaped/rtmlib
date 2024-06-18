@@ -1,11 +1,11 @@
 
 #ifndef NO_THREADS
 
-#include "custom-rtm-monitor/Rtm_compute_8ea7.h"
 #include "custom-rtm-monitor/Rtm_monitor_8ea7.h"
 
-
 namespace test2 {
+
+#include "custom-rtm-monitor/Rtm_compute_8ea7.h"
 
 #include "custom-rtm-monitor/Rtm_instrument_8ea7.h"
 
@@ -48,7 +48,7 @@ int main() {
 
   rtm_mon0.disable();
 
-  rtm_mon0.join();
+  assert(!rtm_mon0.join());
 
   auto v = rtm_mon0.getVeredict();
 
@@ -71,6 +71,8 @@ int rtm_monitor_test2() {
 }
 
 #else
+
+#include <cstdio>
 
 extern "C" int rtm_monitor_test2();
 

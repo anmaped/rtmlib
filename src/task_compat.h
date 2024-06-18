@@ -22,7 +22,7 @@
 #ifndef _TASK_COMPAT_H_
 #define _TASK_COMPAT_H_
 
-#ifdef __NUTTX__
+#if defined(__NuttX__)
 #include <errno.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -225,12 +225,12 @@ struct task {
                 ETIMEDOUT, break;);
             pthread_mutex_unlock(&ttask->fmtx);
 
-            ttask->run(ttask->run_payload);
-
             if (ttask->st == ABORT) {
               ttask->st = ABORTED;
               return NULL;
             }
+
+            ttask->run(ttask->run_payload);
           }
 
           return NULL;

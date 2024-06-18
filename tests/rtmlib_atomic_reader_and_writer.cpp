@@ -32,11 +32,7 @@
 #include <reader.h>
 #include <writer.h>
 
-#if defined(__FREERTOS__)
 #define PRIO 4
-#else
-#define PRIO 0
-#endif
 
 extern "C" int rtmlib_atomic_reader_and_writer();
 
@@ -72,7 +68,7 @@ int rtmlib_atomic_reader_and_writer() {
   };
 
   __attribute__((unused)) __task consumer_1 =
-      __task("consumer1", consumer1, PRIO, SCHED_OTHER, 1000);
+      __task("consumer1", consumer1, PRIO, DEFAULT_SCHED, 1000);
 
   // deploy one task for reader_2
   auto consumer2 = [](void *) -> void * {
@@ -103,7 +99,7 @@ int rtmlib_atomic_reader_and_writer() {
   };
 
   __attribute__((unused)) __task consumer_2 =
-      __task("consumer2", consumer2, PRIO, SCHED_OTHER, 3000);
+      __task("consumer2", consumer2, PRIO, DEFAULT_SCHED, 3000);
 
   // deploy one task for writer
   auto producer1 = [](void *) -> void * {
@@ -128,7 +124,7 @@ int rtmlib_atomic_reader_and_writer() {
   };
 
   __attribute__((unused)) __task producer_1 =
-      __task("producer1", producer1, PRIO, SCHED_OTHER, 6000);
+      __task("producer1", producer1, PRIO, DEFAULT_SCHED, 6000);
 
   consumer_1.st = ACTIVATE;
   consumer_2.st = ACTIVATE;
@@ -144,14 +140,9 @@ int rtmlib_atomic_reader_and_writer() {
   printf("Waiting running tasks...\n");
 
   void *ret = NULL;
-  if (pthread_join(consumer_1.thread, &ret))
-    return 1;
-
-  if (pthread_join(consumer_2.thread, &ret))
-    return 1;
-
-  if (pthread_join(producer_1.thread, &ret))
-    return 1;
+  assert(!pthread_join(consumer_1.thread, &ret));
+  assert(!pthread_join(consumer_2.thread, &ret));
+  assert(!pthread_join(producer_1.thread, &ret));
 
   printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);
 
@@ -159,6 +150,8 @@ int rtmlib_atomic_reader_and_writer() {
 }
 
 #else
+
+#include <cstdio>
 
 extern "C" int rtmlib_atomic_reader_and_writer();
 

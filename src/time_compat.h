@@ -107,7 +107,7 @@ typedef uint32_t timespan;
 
 #define NOP __NOP()
 
-#if defined(__NUTTX__)
+#if defined(__NuttX__)
 #include <nuttx/clock.h>
 
 // get cpu_clock

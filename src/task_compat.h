@@ -22,15 +22,12 @@
 #ifndef _TASK_COMPAT_H_
 #define _TASK_COMPAT_H_
 
-#ifdef __HW__
-#define STACK_SIZE 0
-#define SCHED_OTHER 0
-#define SCHED_FIFO 0
-#elif defined(__NUTTX__)
+#ifdef __NUTTX__
 #include <errno.h>
 #include <pthread.h>
 #include <sys/types.h>
 #define STACK_SIZE 6000
+#define DEFAULT_SCHED SCHED_OTHER
 #elif defined(__FREERTOS__)
 #include <FreeRTOS_POSIX.h>
 #include <FreeRTOS_POSIX/errno.h>
@@ -38,11 +35,18 @@
 #include <FreeRTOS_POSIX/sys/types.h>
 #include <FreeRTOS_POSIX/time.h>
 #define STACK_SIZE 6000
-#else
+#define DEFAULT_SCHED SCHED_OTHER
+#elif defined(__linux__)
 #include <errno.h>
 #include <pthread.h>
 #include <sys/types.h>
 #define STACK_SIZE 1000000
+#define DEFAULT_SCHED SCHED_FIFO
+#else
+#define STACK_SIZE 0
+#define SCHED_OTHER 0
+#define SCHED_FIFO 0
+#warning "Tasks are not supported!"
 #endif
 
 #include "debug_compat.h"
@@ -69,7 +73,7 @@
     return val;                                                                \
   }
 
-enum status { ACTIVATION, RUNNING, DELAY, ABORT, ABORTED, UNACTIVATE };
+enum status { ACTIVATE, UNACTIVATE, RUNNING, DELAY, ABORT, ABORTED };
 
 #ifdef __HW__
 
@@ -83,16 +87,16 @@ struct task {
 
   int priority;
 
-  bool running;
-
   status st;
 
   void *(*run)(void *);
 
   void *run_payload;
 
-  task(char const *id, void *(*loop)(void *), const int prio, const int sch_policy, const useconds_t p, void *payload=NULL): \
-    tid(id), period(p), sched_policy(sch_policy), priority(prio), run(loop), run_payload(payload) {}
+  task(char const *id, void *(*loop)(void *), const int prio,
+       const int sch_policy, const useconds_t p, void *payload = NULL)
+      : tid(id), period(p), sched_policy(sch_policy), priority(prio), run(loop),
+        run_payload(payload) {}
 };
 
 #endif
@@ -114,8 +118,6 @@ struct task {
   const int sched_policy;
 
   const int priority;
-
-  bool running;
 
   status st;
 
@@ -151,14 +153,13 @@ struct task {
 
     DEBUGV_APPEND("\n");
 
-    running = false;
-    st = ACTIVATION;
+    st = UNACTIVATE;
 
     return 0;
   }
 
   task(char const *id, void *(*loop)(void *), const int prio,
-       const int sch_policy, const useconds_t p, void *payload=NULL)
+       const int sch_policy, const useconds_t p, void *payload = NULL)
       : tid(id), period(p), sched_policy(sch_policy), priority(prio), run(loop),
         run_payload(payload) {
     create_task(
@@ -168,8 +169,8 @@ struct task {
 
           // trap to block task start
           for (;;) {
-            if(ttask->st == RUNNING) {
-              ttask->running = true;
+            if (ttask->st == ACTIVATE) {
+              ttask->st = RUNNING;
               break;
             }
           }
@@ -227,7 +228,6 @@ struct task {
             ttask->run(ttask->run_payload);
 
             if (ttask->st == ABORT) {
-              ttask->running = false;
               ttask->st = ABORTED;
               return NULL;
             }

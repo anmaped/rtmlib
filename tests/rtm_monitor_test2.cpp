@@ -48,10 +48,7 @@ int main() {
 
   rtm_mon0.disable();
 
-  // wait till all tasks are finished (threads are not destroyed)
-  while (rtm_mon0.isRunning()) {
-    nanosleep((const struct timespec[]){{1, 0L}}, NULL);
-  };
+  rtm_mon0.join();
 
   auto v = rtm_mon0.getVeredict();
 
@@ -74,8 +71,6 @@ int rtm_monitor_test2() {
 }
 
 #else
-
-#include <stdio.h>
 
 extern "C" int rtm_monitor_test2();
 

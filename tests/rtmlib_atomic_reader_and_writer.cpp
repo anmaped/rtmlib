@@ -130,9 +130,9 @@ int rtmlib_atomic_reader_and_writer() {
   __attribute__((unused)) __task producer_1 =
       __task("producer1", producer1, PRIO, SCHED_OTHER, 6000);
 
-  consumer_1.st = RUNNING;
-  consumer_2.st = RUNNING;
-  producer_1.st = RUNNING;
+  consumer_1.st = ACTIVATE;
+  consumer_2.st = ACTIVATE;
+  producer_1.st = ACTIVATE;
 
   // random load
   nanosleep((const struct timespec[]){{30, 0L}}, NULL);
@@ -143,10 +143,15 @@ int rtmlib_atomic_reader_and_writer() {
 
   printf("Waiting running tasks...\n");
 
-  // wait till all tasks are finished (threads are not destroyed)
-  while (consumer_1.st != ABORTED || consumer_2.st != ABORTED ||
-         producer_1.st != ABORTED) {
-  };
+  void *ret = NULL;
+  if (pthread_join(consumer_1.thread, &ret))
+    return 1;
+
+  if (pthread_join(consumer_2.thread, &ret))
+    return 1;
+
+  if (pthread_join(producer_1.thread, &ret))
+    return 1;
 
   printf("%s \033[0;32msuccess.\e[0m\n", __FILE__);
 
@@ -154,8 +159,6 @@ int rtmlib_atomic_reader_and_writer() {
 }
 
 #else
-
-#include <stdio.h>
 
 extern "C" int rtmlib_atomic_reader_and_writer();
 

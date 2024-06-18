@@ -120,11 +120,13 @@ public:
 
   /** Sets new monitor period. */
   void setPeriod(const useconds_t &p);
+
+  int join();
 };
 
 template <char... name>
 RTML_monitor<name...>::RTML_monitor(const useconds_t period)
-    : _task(task(id, loop, 50, SCHED_OTHER, period, this)) {}
+    : _task(task(id, loop, 50, DEFAULT_SCHED, period, this)) {}
 
 template <char... name>
 RTML_monitor<name...>::RTML_monitor(const useconds_t period,
@@ -141,8 +143,8 @@ template <char... name> void *RTML_monitor<name...>::loop(void *ptr) {
 
 template <char... name> int RTML_monitor<name...>::enable() {
 
-  if (_task.st != RUNNING)
-    _task.st = RUNNING;
+  if (_task.st != ACTIVATE)
+    _task.st = ACTIVATE;
 
   return P_OK;
 }
@@ -155,7 +157,7 @@ template <char... name> int RTML_monitor<name...>::disable() {
 }
 
 template <char... name> bool RTML_monitor<name...>::isRunning() const {
-  return !_task.running;
+  return _task.st == RUNNING;
 }
 
 template <char... name>
@@ -166,6 +168,14 @@ const useconds_t &RTML_monitor<name...>::getPeriod() const {
 template <char... name>
 void RTML_monitor<name...>::setPeriod(const useconds_t &p) {
   _task.period = p;
+}
+
+template <char... name> int RTML_monitor<name...>::join() {
+  void *ret = NULL;
+  if (pthread_join(_task.thread, &ret))
+    return 1;
+
+  return 0;
 }
 
 #endif // RTML_PERIODICMONITOR_H

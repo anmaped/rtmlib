@@ -26,20 +26,12 @@
 #define RTMLIB_DEBUG 0
 #endif
 
-#if defined(__arm__) || defined(__riscv)
-#if defined(__FREERTOS__)
-#include <FreeRTOS.h>
-#include <stdarg.h>
-extern "C" int printf(const char *format, ...);
-#else
-#include <stdio.h>
-#endif
-#elif defined(__x86__) || defined(__x86_64__)
-#include <stdio.h>
-#define x86 1
-#endif
 
-#if defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 0 && defined(x86)
+#if RTMLIB_DEBUG > 0
+
+#if defined(__x86__) || defined(__x86_64__)
+
+#include <cstdio>
 
 #define DEBUGV_ERROR(fmt, args...)                                             \
   fprintf(stderr, "ERROR: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
@@ -51,22 +43,9 @@ extern "C" int printf(const char *format, ...);
 
 #define DEBUGV_APPEND(fmt, args...) fprintf(stdout, fmt, ##args)
 
-#if defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 2 && defined(x86)
+#elif defined(__arm__) || defined(__riscv)
 
-#define DEBUGV3(fmt, args...)                                                  \
-  fprintf(stdout, "DEBUG: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
-          ##args)
-
-#define DEBUGV3_APPEND(fmt, args...) fprintf(stdout, fmt, ##args)
-
-#else
-#define DEBUGV3(...)
-
-#define DEBUGV3_APPEND(...)
-
-#endif
-
-#elif defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 0 && ( defined(__arm__) || defined(__riscv) )
+extern "C" int printf(const char *format, ...);
 
 #define DEBUGV_ERROR(fmt, args...)                                             \
   printf("ERROR: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, ##args)
@@ -76,28 +55,51 @@ extern "C" int printf(const char *format, ...);
 
 #define DEBUGV_APPEND(fmt, args...) printf(fmt, ##args)
 
-#if defined(RTMLIB_DEBUG) && RTMLIB_DEBUG > 2 && ( defined(__arm__) || defined(__riscv) )
+#endif
+
+#else
+
+#if defined(__x86__) || defined(__x86_64__)
+#include <cstdio>
+#endif
+
+#if defined(__arm__) || defined(__riscv)
+extern "C" int printf(const char *format, ...);
+#endif
+
+#define DEBUGV_ERROR(...)                                                      \
+  {}
+#define DEBUGV(...)                                                            \
+  {}
+#define DEBUGV_APPEND(...)                                                     \
+  {}
+
+#endif
+
+#if RTMLIB_DEBUG > 2
+
+#if defined(__x86__) || defined(__x86_64__)
+
+#define DEBUGV3(fmt, args...)                                                  \
+  fprintf(stdout, "DEBUG: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__,     \
+          ##args)
+
+#define DEBUGV3_APPEND(fmt, args...) fprintf(stdout, fmt, ##args)
+
+#elif defined(__arm__) || defined(__riscv)
 
 #define DEBUGV3(fmt, args...)                                                  \
   printf("DEBUG3: %s:%d:%s(): " fmt, __FILE__, __LINE__, __func__, ##args)
 
 #define DEBUGV3_APPEND(fmt, args...) printf(fmt, ##args)
 
-#else
-
-#define DEBUGV3(...)
-
-#define DEBUGV3_APPEND(...)
-
 #endif
 
 #else
-
-#define DEBUGV(...)
-#define DEBUGV_APPEND(...)
-#define DEBUGV3(...)
-#define DEBUGV_ERROR(...)
-#define DEBUGV3_APPEND(...)
+#define DEBUGV3(...)                                                           \
+  {}
+#define DEBUGV3_APPEND(...)                                                    \
+  {}
 
 #endif
 

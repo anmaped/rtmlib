@@ -91,6 +91,12 @@ RUN qemu-system-riscv64 --version
 # check gcc version
 RUN g++ --version
 
+# install extra dependencies to build NuttX (examples included)
+RUN apt install -y \
+    kconfig-frontends \
+    genromfs \
+    xxd
+
 # get rtmlib from github
 RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
 RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
@@ -98,13 +104,6 @@ RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 COPY examples /rtmlib/examples
 COPY src /rtmlib/src
 COPY tests /rtmlib/tests
-
-
-# install extra dependencies to build NuttX (examples included)
-RUN apt install -y \
-    kconfig-frontends \
-    genromfs \
-    xxd
 
 #
 # make examples

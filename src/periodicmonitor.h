@@ -126,7 +126,7 @@ public:
 
 template <char... name>
 RTML_monitor<name...>::RTML_monitor(const useconds_t period)
-    : _task(task(id, loop, 50, DEFAULT_SCHED, period, this)) {}
+    : _task(task(id, loop, DEFAULT_PRIORITY, DEFAULT_SCHED, period, this)) {}
 
 template <char... name>
 RTML_monitor<name...>::RTML_monitor(const useconds_t period,

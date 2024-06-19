@@ -1,11 +1,9 @@
 
-#ifndef NO_THREADS
+#if !defined NO_THREADS && !defined NO_RTM_MONITOR_TESTS
 
 #include "custom-rtm-monitor/Rtm_monitor_6ea3.h"
 
 namespace test3 {
-
-#include "custom-rtm-monitor/Rtm_compute_6ea3.h"
 
 #include "custom-rtm-monitor/Rtm_instrument_6ea3.h"
 

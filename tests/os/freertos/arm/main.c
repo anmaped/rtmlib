@@ -111,7 +111,7 @@ void main( void )
 	file. */
 	xTaskCreate( __task_main,					/* The function that implements the task. */
 				"Main Task", 					/* The text name assigned to the task - for debug only as it is not used by the kernel. */
-				10000, 							/* The size of the stack to allocate to the task. */
+				20000, 							/* The size of the stack to allocate to the task. */
 				NULL, 							/* The parameter passed to the task - not used in this simple case. */
 				tskIDLE_PRIORITY + 2,			/* The priority assigned to the task. */
 				NULL );							/* The task handle is not required, so NULL is passed. */

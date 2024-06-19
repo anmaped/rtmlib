@@ -35,7 +35,7 @@ MAIN_EPILOGUE:=
 EPILOGUE:=
 
 # Debug Flags
-#DEBUGFLAGS= -DRTMLIB_ENABLE_DEBUG_RMTLD3 -DRTMLIB_ENABLE_DEBUGV_RMTLD3 #-DRTMLIB_DEBUG=3 -g
+#DEBUGFLAGS= -DRTMLIB_DEBUG=3 # -DRTMLIB_ENABLE_DEBUG_RMTLD3 -DRTMLIB_ENABLE_DEBUGV_RMTLD3
 
 ifneq (,$(filter x$(ARCH),x xx86 xx86_64))
 
@@ -113,8 +113,7 @@ $(eval $(shell make \
 		OBJ_FILES__ := $(patsubst $(SRC_DIR__)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES__))
 
 		CFLAGS += 
-		LDFLAGS := -T $(SRC_DIR)/os/freertos/arm/mps2_m3.ld -specs=nano.specs \
-			-specs=nosys.specs -specs=rdimon.specs
+		LDFLAGS := -T $(SRC_DIR)/os/freertos/arm/mps2_m3.ld -specs=nosys.specs
 		OBJ_FILES += $(OBJS_OUTPUT) $(OBJ_FILES__)
 		VPATH += $(SRC_DIR)/../examples/qemu-arm-mps2-freertos $(SRC_DIR__)
 		PREFIX_MAIN:=__task_
@@ -186,7 +185,7 @@ ifeq ($(ARCH),riscv64)
 		OBJ_FILES += 
 		LDFLAGS := -r
 		ASFLAGS := 
-		CPPFLAGS += -nostdlib -fno-exceptions -fno-threadsafe-statics -D__NUTTX__ -I../thirdparty/nuttx/include
+		CPPFLAGS += -nostdlib -fno-exceptions -fno-rtti -fno-threadsafe-statics -D__NUTTX__ -I../thirdparty/nuttx/include
 
 		PREAMBLE +=
 		MAIN_PREAMBLE +=

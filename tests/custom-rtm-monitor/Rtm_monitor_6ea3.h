@@ -51,7 +51,7 @@ protected:
 
 public:
   Rtm_monitor_6ea3_0(useconds_t p, T &trc)
-      : RTML_monitor(p, DEFAULT_SCHED, 50), trace(trc) {
+      : RTML_monitor(p, DEFAULT_SCHED, DEFAULT_PRIORITY), trace(trc) {
     tzero = clockgettime() + 3000000000L;
   }
 

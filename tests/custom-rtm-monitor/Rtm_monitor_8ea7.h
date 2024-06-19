@@ -48,7 +48,7 @@ protected:
 
 public:
   Rtm_monitor_8ea7_0(useconds_t p, T &trc)
-      : RTML_monitor(p, DEFAULT_SCHED, 50), trace(trc), _out(T_UNKNOWN) {
+      : RTML_monitor(p, DEFAULT_SCHED, DEFAULT_PRIORITY), trace(trc), _out(T_UNKNOWN) {
     tzero = clockgettime() + 3000000000L;
   }
   Rtm_monitor_8ea7_0(useconds_t p, T &trc, int sche, int prio)

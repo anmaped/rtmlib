@@ -32,7 +32,6 @@
 #include <reader.h>
 #include <writer.h>
 
-#define PRIO 4
 
 extern "C" int rtmlib_atomic_reader_and_writer();
 
@@ -68,7 +67,7 @@ int rtmlib_atomic_reader_and_writer() {
   };
 
   __attribute__((unused)) __task consumer_1 =
-      __task("consumer1", consumer1, PRIO, DEFAULT_SCHED, 1000);
+      __task("consumer1", consumer1, DEFAULT_PRIORITY, DEFAULT_SCHED, 1000);
 
   // deploy one task for reader_2
   auto consumer2 = [](void *) -> void * {
@@ -99,7 +98,7 @@ int rtmlib_atomic_reader_and_writer() {
   };
 
   __attribute__((unused)) __task consumer_2 =
-      __task("consumer2", consumer2, PRIO, DEFAULT_SCHED, 3000);
+      __task("consumer2", consumer2, DEFAULT_PRIORITY, DEFAULT_SCHED, 3000);
 
   // deploy one task for writer
   auto producer1 = [](void *) -> void * {
@@ -124,7 +123,7 @@ int rtmlib_atomic_reader_and_writer() {
   };
 
   __attribute__((unused)) __task producer_1 =
-      __task("producer1", producer1, PRIO, DEFAULT_SCHED, 6000);
+      __task("producer1", producer1, DEFAULT_PRIORITY, DEFAULT_SCHED, 6000);
 
   consumer_1.st = ACTIVATE;
   consumer_2.st = ACTIVATE;

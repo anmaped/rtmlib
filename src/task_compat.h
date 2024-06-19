@@ -22,30 +22,32 @@
 #ifndef _TASK_COMPAT_H_
 #define _TASK_COMPAT_H_
 
-#if defined(__NuttX__)
+#if defined(__NUTTX__) || defined(__NuttX__)
 #include <errno.h>
 #include <pthread.h>
-#include <sys/types.h>
-#define STACK_SIZE 6000
-#define DEFAULT_SCHED SCHED_OTHER
+#include <sched.h>
+#define STACK_SIZE 10000
+#define DEFAULT_SCHED SCHED_FIFO
+#define DEFAULT_PRIORITY 50
 #elif defined(__FREERTOS__)
 #include <FreeRTOS_POSIX.h>
 #include <FreeRTOS_POSIX/errno.h>
 #include <FreeRTOS_POSIX/pthread.h>
 #include <FreeRTOS_POSIX/sys/types.h>
-#include <FreeRTOS_POSIX/time.h>
-#define STACK_SIZE 6000
+#define STACK_SIZE 10000
 #define DEFAULT_SCHED SCHED_OTHER
+#define DEFAULT_PRIORITY 4
 #elif defined(__linux__)
 #include <errno.h>
 #include <pthread.h>
 #include <sys/types.h>
-#define STACK_SIZE 1000000
+#define STACK_SIZE 30000
 #define DEFAULT_SCHED SCHED_FIFO
+#define DEFAULT_PRIORITY 50
 #else
 #define STACK_SIZE 0
-#define SCHED_OTHER 0
-#define SCHED_FIFO 0
+#define DEFAULT_SCHED 0
+#define DEFAULT_PRIORITY 0
 #warning "Tasks are not supported!"
 #endif
 
@@ -173,6 +175,7 @@ struct task {
               ttask->st = RUNNING;
               break;
             }
+            nanosleep((const struct timespec[]){{0, 100000L}}, NULL);
           }
 
           DEBUGV("#Task(%s) is running ...\n", ttask->tid);

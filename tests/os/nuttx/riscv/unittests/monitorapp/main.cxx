@@ -30,7 +30,7 @@ int monitorapp_main(int argc, char *const argv[]) {
   printf("unittests app starting...\n");
 
   daemon_task =
-      task_create("monitorapp_main", 241, 20048, monitor_main_loop, NULL);
+      task_create("monitorapp_main", 241, 20000, monitor_main_loop, NULL);
  
   printf("unittests app started.\n");
 

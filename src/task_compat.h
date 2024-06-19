@@ -169,22 +169,24 @@ struct task {
           struct task *ttask = (struct task *)tsk;
           struct timespec now = {0}, next = {0}, tmp = {0};
 
-          // trap to block task start
-          for (;;) {
-            if (ttask->st == ACTIVATE) {
-              ttask->st = RUNNING;
-              break;
-            }
-            nanosleep((const struct timespec[]){{0, 100000L}}, NULL);
-          }
-
-          DEBUGV("#Task(%s) is running ...\n", ttask->tid);
+          DEBUGV("#Task(%s) is waiting ...\n", ttask->tid);
 
           // Mutex and conditional variables for pthread_cond_timedwait
           pcheck_print(pthread_mutex_init(&ttask->fmtx, NULL), P_OK,
                        return NULL;);
           pcheck_print(pthread_cond_init(&ttask->cond, NULL), P_OK,
                        return NULL;);
+
+          // trap to block task start
+          for (;;) {
+            if (ttask->st == ACTIVATE) {
+              ttask->st = RUNNING;
+              break;
+            }
+            pthread_yield();
+          }
+
+          DEBUGV("#Task(%s) is running ...\n", ttask->tid);
 
           // initialize the current gettime after task initalization
           clock_gettime(CLOCK_REALTIME, &next);

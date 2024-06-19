@@ -106,6 +106,7 @@ $(eval $(shell make \
 			-I$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/include/portable/st/stm32l475_discovery \
 			-DconfigUSE_POSIX_ERRNO=1 \
 			-DconfigUSE_APPLICATION_TASK_TAG=1 \
+			-DNO_RTM_MONITOR_TESTS \
 			$(INCLUDE_DIRS)
 				
 		SRC_DIR__:=$(OS_PATH)/../freertos-posix/FreeRTOS-Plus-POSIX/source
@@ -185,7 +186,7 @@ ifeq ($(ARCH),riscv64)
 		OBJ_FILES += 
 		LDFLAGS := -r
 		ASFLAGS := 
-		CPPFLAGS += -nostdlib -fno-exceptions -fno-rtti -fno-threadsafe-statics -D__NUTTX__ -I../thirdparty/nuttx/include
+		CPPFLAGS += -nostdlib -fno-exceptions -fno-rtti -fno-threadsafe-statics -DNO_RTM_MONITOR_TESTS -D__NUTTX__ -I../thirdparty/nuttx/include
 
 		PREAMBLE +=
 		MAIN_PREAMBLE +=

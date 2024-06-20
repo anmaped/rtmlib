@@ -183,7 +183,7 @@ struct task {
               ttask->st = RUNNING;
               break;
             }
-            pthread_yield();
+            nanosleep((const struct timespec[]){{0, 100000L}}, NULL);
           }
 
           DEBUGV("#Task(%s) is running ...\n", ttask->tid);

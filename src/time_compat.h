@@ -43,7 +43,7 @@ typedef long timespan;
 #include <time.h>
 
 typedef uint64_t timeabs;
-typedef uint32_t timespan;
+typedef uint64_t timespan;
 
 #if defined(__NUTTX__)
 #include <nuttx/clock.h>
@@ -54,6 +54,20 @@ typedef uint32_t timespan;
     clock_gettime(CLOCK_REALTIME, &__n);                                       \
     uint64_t result = __n.tv_sec;                                              \
     (result * 1000000000) + (__n.tv_nsec);                                     \
+  })
+
+#elif defined(__rtems__)
+#include <rtems.h>
+#include <sys/time.h>
+#include <time.h>
+#include <sched.h>
+#include <pthread.h>
+#define clockgettime()                                                         \
+  ({                                                                           \
+    struct timespec t;                                                         \
+    (void) clock_gettime(CLOCK_MONOTONIC, &t);                                 \
+    uint64_t result = t.tv_sec;                                                \
+    (result * 1000000000) + (t.tv_nsec);                                       \
   })
 
 #else

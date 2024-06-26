@@ -83,6 +83,11 @@ typedef unsigned int uint32_t;
 #define pthread_yield() (sched_yield())
 #elif defined(__NUTTX__) || defined(__NuttX__)
 #include <pthread.h>
+#elif defined(__rtems__)
+#include <rtems/posix/pthread.h> 
+#include <pthread.h> 
+#include <sched.h> 
+#define pthread_yield() (sched_yield())
 #endif
 
 #define NATIVE_POINTER_TYPE uint64_t

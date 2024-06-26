@@ -37,6 +37,19 @@
 #define STACK_SIZE 10000
 #define DEFAULT_SCHED SCHED_OTHER
 #define DEFAULT_PRIORITY 4
+#elif defined(__rtems__) 
+#include <rtems.h>
+#include <rtems/posix/posixapi.h>
+#include <rtems/posix/pthread.h>
+#include <rtems/rtems/types.h>
+#include <sys/time.h>
+#include <time.h>
+#include <errno.h>
+#include <sched.h>
+#include <pthread.h>
+#define STACK_SIZE 10000
+#define DEFAULT_SCHED SCHED_OTHER
+#define DEFAULT_PRIORITY 4
 #elif defined(__linux__)
 #include <errno.h>
 #include <pthread.h>

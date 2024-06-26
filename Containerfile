@@ -43,6 +43,56 @@ RUN mkdir -p /opt/gcc-riscv && \
     rm -rf /tmp/riscv-gnu-toolchain    
 
 
+FROM debian:11 as rtems-build-stage
+
+RUN apt-get update && \
+    # Install tools and libraries
+    apt-get install -y \ 
+    apt-utils \ 
+    build-essential \ 
+    git \
+    python3 \
+    bison \ 
+    flex \
+    pkg-config \
+    ninja-build \
+    libglib2.0-dev \
+    libpixman-1-dev \
+    unzip \ 
+    python \ 
+    python3.9-dev \
+    wget \
+    xxd && \   
+    rm -rf /var/lib/apt/lists/*  
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+# Build the RTEMS toolchain
+RUN  cd /tmp && \
+    mkdir -p rtems-dev/src && \
+    cd rtems-dev/src && \
+    wget https://ftp.rtems.org/pub/rtems/releases/6/rc/6.1-rc3/sources/rtems-source-builder-6.1-rc3.tar.xz && \
+    tar Jxf rtems-source-builder-6.1-rc3.tar.xz && \
+    cd rtems-source-builder-6.1-rc3/rtems && \
+    ../source-builder/sb-set-builder --prefix=/opt/rtems/6 6/rtems-riscv
+
+ENV PATH="/opt/rtems/6/bin:${PATH}"
+RUN riscv-rtems6-gcc --version
+
+# Build the RTEMS Kernel / bsps
+RUN  cd /tmp/rtems-dev/src && \
+    wget https://ftp.rtems.org/pub/rtems/releases/6/rc/6.1-rc3/sources/rtems-6.1-rc3.tar.xz && \
+    tar Jxf rtems-6.1-rc3.tar.xz && \
+    cd rtems-6.1-rc3 && \
+     echo "[riscv/rv64imafdc]" >> /tmp/rtems-dev/src/rtems-6.1-rc3/rv64-config.ini && \
+     echo "RTEMS_POSIX_API = True" >> /tmp/rtems-dev/src/rtems-6.1-rc3/rv64-config.ini && \
+     ./waf configure --target=riscv-rtems6 \
+     --prefix=/opt/rtems/6 --rtems-config=rv64-config.ini && \
+     ./waf && \
+     ./waf install
+
+
 FROM debian:11
 
 RUN apt update
@@ -63,6 +113,12 @@ ENV PATH="/opt/gcc-arm-9.2-2019.12-x86_64-aarch64-none-elf/bin:${PATH}"
 COPY --from=gcc-riscv-build-stage /opt/gcc-riscv /opt/gcc-riscv
 ENV PATH="/opt/gcc-riscv/bin:${PATH}"
 
+# install risc-v rtems (RV64) compiler
+COPY --from=rtems-build-stage /opt/rtems /opt/rtems
+ENV PATH="/opt/rtems/6/bin:${PATH}"
+
+# check rtems version
+RUN riscv-rtems6-gcc --version
 
 # install qemu (arm and aarch64)
 RUN apt install -y \
@@ -98,7 +154,7 @@ RUN apt install -y \
     xxd
 
 # get rtmlib from github
-RUN git clone --branch v2.0.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
+RUN git clone --branch v2.1.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
 RUN cd /rtmlib && git submodule update --depth 1 --init --recursive
 # or
 COPY examples /rtmlib/examples
@@ -197,3 +253,14 @@ RUN cd /rtmlib/thirdparty/nuttx \
        EXTRA_OBJS="/rtmlib/tests/build/riscv-nuttx/rtmlib_unittests.o"
 
 RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -bios none -kernel /rtmlib/thirdparty/nuttx/nuttx -nographic
+
+# with RTEMS
+
+# build unittests for RTEMS
+RUN cd /rtmlib/tests && make ARCH=riscv64 OS=rtems BUILD_DIR=build/riscv-rtems
+
+# include build object and build RTEMS
+RUN cd /rtmlib/tests/os/rtems/riscv/unittests/monitorapp \
+    && make
+
+RUN qemu-system-riscv64 -semihosting -M virt -cpu rv64 -nographic -bios /rtmlib/tests/os/rtems/riscv/unittests/monitorapp/o-optimize/monitorapp.exe

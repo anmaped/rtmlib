@@ -1,28 +1,28 @@
 
 #if !defined NO_THREADS && !defined NO_RTM_MONITOR_TESTS
 
-#include "custom-rtm-monitor/Rtm_monitor_8ea7.h"
+#include "custom-rtm-monitor/Rtm_monitor_62be.h"
 
 namespace test1 {
 
-#include "custom-rtm-monitor/Rtm_instrument_8ea7.h"
+#include "custom-rtm-monitor/Rtm_instrument_62be.h"
 
 RTML_BUFFER0_SETUP();
 
 void test1() {
 
-  Writer_rtm__8ea7 writer;
+  Writer_rtm__62be writer;
 
-  writer.push(Writer_rtm__8ea7::a);
+  writer.push(Writer_rtm__62be::a);
   nanosleep((const struct timespec[]){{1, 0L}}, NULL);
 
-  writer.push(Writer_rtm__8ea7::b);
+  writer.push(Writer_rtm__62be::b);
   nanosleep((const struct timespec[]){{1, 0L}}, NULL);
 
-  writer.push(Writer_rtm__8ea7::a);
+  writer.push(Writer_rtm__62be::a);
   nanosleep((const struct timespec[]){{4, 0L}}, NULL);
 
-  writer.push(Writer_rtm__8ea7::a);
+  writer.push(Writer_rtm__62be::a);
   nanosleep((const struct timespec[]){{12, 0L}}, NULL);
 
   return;
@@ -32,7 +32,7 @@ int main() {
 
   RTML_BUFFER0_TRIGGER_PERIODIC_MONITORS();
 
-  __buffer_rtm_monitor_8ea7.debug();
+  __buffer_rtm_monitor_62be.debug();
   // nanosleep((const struct timespec[]){{1, 0L}}, NULL);
 
   rtm_mon0.enable();

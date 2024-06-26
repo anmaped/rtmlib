@@ -160,14 +160,14 @@ ifeq ($(ARCH),riscv64)
 	PREF := riscv64-unknown-elf-
 	CFLAGS = -std=c11
 	CXXFLAGS := -std=c++11
-	CPPFLAGS := -ffreestanding -nostartfiles -O0 -mcmodel=medany -march=rv64gc -mabi=lp64d -I../src/ ${DEBUGFLAGS}
+	CPPFLAGS := -ffreestanding -nostartfiles -O0 -mcmodel=medany -mabi=lp64d -I../src/ ${DEBUGFLAGS}
 	EXTENSION := .elf
 
 	ifeq ($(OS),none)
 		OBJ_FILES += $(SRC_DIR)/os/none/riscv/startup.o $(SRC_DIR)/os/none/riscv/uart.o $(SRC_DIR)/os/none/riscv/target.o
 		LDFLAGS := -T $(SRC_DIR)/os/none/riscv/link.ld
 		ASFLAGS := 
-		CPPFLAGS += -DNO_THREADS -I$(SRC_DIR)/os/none/riscv
+		CPPFLAGS += -march=rv64gc -DNO_THREADS -I$(SRC_DIR)/os/none/riscv
 
 		PREAMBLE+=\#include \"uart.h\" \n
 		MAIN_PREAMBLE+=uart_init(); \n
@@ -200,6 +200,32 @@ ifeq ($(ARCH),riscv64)
 		PREFIX_MAIN:= __s_
 		EXTENSION := .o
 	endif
+
+	ifeq ($(OS),rtems)
+		RTEMS_API := 6
+		RTEMS_MAKEFILE_PATH:=/opt/rtems/6/riscv-rtems6/rv64imafdc
+		PREF := riscv-rtems$(RTEMS_API)-
+		CPPFLAGS += -march=rv64imafdc -Wall -g  -fdata-sections -ffunction-sections -qrtems 
+		CPPFLAGS += -B$(RTEMS_MAKEFILE_PATH)/lib/ 
+		CPPFLAGS += -D_GNU_SOURCE ${DEBUGFLAGS}
+		
+		LDFLAGS += -r
+
+		PREAMBLE +=
+		MAIN_PREAMBLE +=
+		MAIN_EPILOGUE+=register int r0 __asm__(\"x5\"); \n
+		MAIN_EPILOGUE+=r0 = 0x5555; \n
+		MAIN_EPILOGUE+=register int r1 __asm__(\"x6\"); \n
+		MAIN_EPILOGUE+=r1 = 0x100000; \n
+		MAIN_EPILOGUE+=__asm__ volatile(\"sw x5, 0(x6)\"); \n
+		
+		VPATH += $(SRC_DIR)/os/rtems/riscv/unittests
+		VPATH += /opt/rtems/6/riscv-rtems6/rv64imafdc_medany/lib/include
+		PREFIX_MAIN:= __s_
+		EXTENSION := .o
+		# make ARCH=riscv64 OS=rtems BUILD_DIR=build/riscv-rtems
+	endif
+
 
 endif
 

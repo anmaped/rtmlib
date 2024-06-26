@@ -16,3 +16,4 @@ rtmlib2:
 - [x] add in-between check for until_less
 - [x] implement eventually_less_unbounded and unit tests
 - [x] fix issue with since_less and eventually_less templates
+- [ ] remove -DNO_RTM_MONITOR_TESTS in tests Makefile (the other tests are not being run in NuttX and FreeRTOS)

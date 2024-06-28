@@ -18,7 +18,7 @@ include $(PROJECT_ROOT)/make/leaf.cfg
 CFLAGS_OPTIMIZE_V = -O0 -g -ffunction-sections -fdata-sections
 
 DEFINES += -I../../../src
-DEFINES += -I./mon -D_GNU_SOURCE
+DEFINES += -D_GNU_SOURCE
 DEFINES += -DRTMLIB_ENABLE_DEBUG_RMTLD3 -DRTMLIB_ENABLE_MAP_SORT
 
 OBJS= $(COBJS) $(CXXOBJS) $(ASOBJS) 

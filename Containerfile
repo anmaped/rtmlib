@@ -1,4 +1,5 @@
 FROM debian:11 as qemu-build-stage
+LABEL Description="qemu RV64"
 
 RUN apt update && apt install -y \
     build-essential \
@@ -7,7 +8,8 @@ RUN apt update && apt install -y \
     pkg-config \
     ninja-build \
     libglib2.0-dev \
-    libpixman-1-dev
+    libpixman-1-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN cd /tmp && \
     git clone --depth 1 --branch v6.1.0 https://gitlab.com/qemu-project/qemu.git qemu-riscv-src && \
@@ -19,6 +21,7 @@ RUN cd /tmp && \
 
 
 FROM debian:11 as gcc-riscv-build-stage
+LABEL Description="gcc RV64"
 
 RUN apt update && apt install -y \
     build-essential \
@@ -29,7 +32,8 @@ RUN apt update && apt install -y \
     flex \
     texinfo \
     zlib1g-dev \
-    libexpat-dev
+    libexpat-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN git clone -b 2021.04.23 --depth 1 https://github.com/riscv/riscv-gnu-toolchain /tmp/riscv-gnu-toolchain && \
     cd /tmp/riscv-gnu-toolchain  && \
@@ -44,62 +48,76 @@ RUN mkdir -p /opt/gcc-riscv && \
 
 
 FROM debian:11 as rtems-build-stage
+LABEL Description="rtems6 RV64 toolchain"
+ENV TERM linux
 
-RUN apt-get update && \
-    # Install tools and libraries
-    apt-get install -y \ 
+RUN apt-get update && apt-get install -y \
     apt-utils \ 
     build-essential \ 
     git \
-    python3 \
-    bison \ 
+    python3.9 \
+    python3.9-dev \
+    python-is-python3 \
+    bison \
     flex \
     pkg-config \
     ninja-build \
     libglib2.0-dev \
     libpixman-1-dev \
-    unzip \ 
-    python \ 
-    python3.9-dev \
+    unzip \
     wget \
-    xxd && \   
-    rm -rf /var/lib/apt/lists/*  
+    xxd && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 # Build the RTEMS toolchain
-RUN  cd /tmp && \
-    mkdir -p rtems-dev/src && \
-    cd rtems-dev/src && \
-    wget https://ftp.rtems.org/pub/rtems/releases/6/rc/6.1-rc3/sources/rtems-source-builder-6.1-rc3.tar.xz && \
-    tar Jxf rtems-source-builder-6.1-rc3.tar.xz && \
-    cd rtems-source-builder-6.1-rc3/rtems && \
-    ../source-builder/sb-set-builder --prefix=/opt/rtems/6 6/rtems-riscv
+RUN  cd /usr/src && \
+    git clone https://gitlab.rtems.org/rtems/tools/rtems-source-builder.git rsb && \
+    cd /usr/src/rsb/rtems && \
+    echo "%define gmp_url https://ftp.gnu.org/gnu/gmp" >> config/6/rtems-riscv.bset && \
+    ../source-builder/sb-set-builder --prefix=/opt/rtems/6 6/rtems-riscv && \
+    cd /usr/src && \
+    rm -rf rsb
 
 ENV PATH="/opt/rtems/6/bin:${PATH}"
 RUN riscv-rtems6-gcc --version
 
-# Build the RTEMS Kernel / bsps
-RUN  cd /tmp/rtems-dev/src && \
-    wget https://ftp.rtems.org/pub/rtems/releases/6/rc/6.1-rc3/sources/rtems-6.1-rc3.tar.xz && \
-    tar Jxf rtems-6.1-rc3.tar.xz && \
-    cd rtems-6.1-rc3 && \
-     echo "[riscv/rv64imafdc]" >> /tmp/rtems-dev/src/rtems-6.1-rc3/rv64-config.ini && \
-     echo "RTEMS_POSIX_API = True" >> /tmp/rtems-dev/src/rtems-6.1-rc3/rv64-config.ini && \
-     ./waf configure --target=riscv-rtems6 \
-     --prefix=/opt/rtems/6 --rtems-config=rv64-config.ini && \
-     ./waf && \
-     ./waf install
+# Build the RTEMS Kernel / bsp
+RUN  cd /usr/src && \
+    git clone https://gitlab.rtems.org/rtems/rtos/rtems.git && \
+    cd /usr/src/rtems && \
+    echo "[riscv/rv64imafdc]" >> rv64-config.ini && \
+    echo "RTEMS_POSIX_API = True" >> rv64-config.ini && \
+    ./waf configure --target=riscv-rtems6 --prefix=/opt/rtems/6 --rtems-config=rv64-config.ini && \
+    ./waf && \
+    ./waf install
 
 
 FROM debian:11
+LABEL Description="rtmlib2 tests"
 
-RUN apt update
-RUN apt install -y \
+RUN apt update && apt install -y \
     build-essential \
     wget \
-    git
+    git \
+    qemu-utils  \
+    qemu-efi-aarch64 \
+    qemu-system-arm \
+    libpixman-1-0 \
+    libglib2.0-0 \
+    rsync \
+    kconfig-frontends \
+    genromfs \
+    xxd && \
+    rm -rf /var/lib/apt/lists/*
+
+# check qemu (arm)
+RUN qemu-system-arm --version
+
+# check qemu (aarch64)
+RUN qemu-system-aarch64 --version
 
 # install arm-none-eabi (one package available but not working - apt install -y gcc-arm-none-eabi)
 RUN wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 && tar xvf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 -C /opt
@@ -120,38 +138,15 @@ ENV PATH="/opt/rtems/6/bin:${PATH}"
 # check rtems version
 RUN riscv-rtems6-gcc --version
 
-# install qemu (arm and aarch64)
-RUN apt install -y \
-    qemu-utils  \
-    qemu-efi-aarch64 \
-    qemu-system-arm
-
-# check qemu (arm)
-RUN qemu-system-arm --version
-
-# check qemu (aarch64)
-RUN qemu-system-aarch64 --version
-
 # install qemu (RV64)
 COPY --from=qemu-build-stage /opt/qemu /opt/qemu
 ENV PATH="/opt/qemu/bin:${PATH}"
-
-RUN apt update && apt install -y \
-    libpixman-1-0 \
-    libglib2.0-0 \
-    rsync
 
 # check qemu (riscv)
 RUN qemu-system-riscv64 --version
 
 # check gcc version
 RUN g++ --version
-
-# install extra dependencies to build NuttX (examples included)
-RUN apt install -y \
-    kconfig-frontends \
-    genromfs \
-    xxd
 
 # get rtmlib from github
 RUN git clone --branch v2.1.x --depth 1 https://github.com/anmaped/rtmlib.git /rtmlib
